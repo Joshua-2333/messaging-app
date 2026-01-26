@@ -3,6 +3,22 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../db/pool.js";
 
+function generateTokens(user) {
+  const accessToken = jwt.sign(
+    { id: user.id, username: user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user.id, username: user.username },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  return { accessToken, refreshToken };
+}
+
 export async function register(req, res) {
   const { username, password, display_name } = req.body;
 
@@ -22,7 +38,15 @@ export async function register(req, res) {
       [username, hashedPassword, display_name || null]
     );
 
-    res.status(201).json(result.rows[0]);
+    const user = result.rows[0];
+    const tokens = generateTokens(user);
+
+    await pool.query(
+      "INSERT INTO refresh_tokens (user_id, token) VALUES ($1, $2)",
+      [user.id, tokens.refreshToken]
+    );
+
+    res.status(201).json({ user, ...tokens });
   } catch (err) {
     console.error(err);
     res.status(400).json({ message: "Username already exists" });
@@ -53,11 +77,12 @@ export async function login(req, res) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const token = jwt.sign(
-    { id: user.id, username: user.username },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
+  const tokens = generateTokens(user);
+
+  await pool.query(
+    "INSERT INTO refresh_tokens (user_id, token) VALUES ($1, $2)",
+    [user.id, tokens.refreshToken]
   );
 
-  res.json({ token });
+  res.json({ user, ...tokens });
 }

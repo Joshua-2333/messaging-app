@@ -37,6 +37,15 @@ async function seed() {
     `);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        token TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_messages_conversation
       ON messages(conversation_id);
     `);

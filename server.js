@@ -5,6 +5,9 @@ import dotenv from "dotenv";
 
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/usersRoutes.js";
+import tokenRoutes from "./routes/tokenRoutes.js";
+import conversationsRoutes from "./routes/conversationsRoutes.js";
+import messagesRoutes from "./routes/messagesRoutes.js";
 
 dotenv.config();
 
@@ -14,7 +17,10 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/token", tokenRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/conversations", conversationsRoutes);
+app.use("/api/messages", messagesRoutes);
 
 app.get("/", (req, res) => {
   res.send("Messaging API running");

@@ -1,7 +1,8 @@
 // middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
+import pool from "../db/pool.js";
 
-export function authenticate(req, res, next) {
+export async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -16,7 +17,19 @@ export function authenticate(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    const result = await pool.query(
+      "SELECT id, username, display_name, bio, avatar_url FROM users WHERE id = $1",
+      [decoded.id]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.user = user;
     next();
   } catch (err) {
     return res.status(403).json({ message: "Invalid or expired token" });
