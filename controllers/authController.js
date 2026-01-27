@@ -47,8 +47,7 @@ export async function register(req, res) {
     );
 
     res.status(201).json({ user, ...tokens });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(400).json({ message: "Username already exists" });
   }
 }
@@ -66,14 +65,7 @@ export async function login(req, res) {
   );
 
   const user = result.rows[0];
-
-  if (!user) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  const validPassword = await bcrypt.compare(password, user.password);
-
-  if (!validPassword) {
+  if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
@@ -85,4 +77,15 @@ export async function login(req, res) {
   );
 
   res.json({ user, ...tokens });
+}
+
+export async function logout(req, res) {
+  const { refreshToken } = req.body;
+
+  await pool.query(
+    "DELETE FROM refresh_tokens WHERE token = $1",
+    [refreshToken]
+  );
+
+  res.json({ message: "Logged out" });
 }

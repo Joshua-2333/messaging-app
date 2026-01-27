@@ -1,3 +1,4 @@
+// db/seed.js
 import pool from "./pool.js";
 
 async function seed() {
@@ -21,6 +22,8 @@ async function seed() {
         id SERIAL PRIMARY KEY,
         user_one INTEGER REFERENCES users(id) ON DELETE CASCADE,
         user_two INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        last_message TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (user_one, user_two)
       );
