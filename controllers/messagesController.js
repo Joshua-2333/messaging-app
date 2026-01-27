@@ -16,7 +16,6 @@ export async function sendMessage(req, res) {
     SELECT id
     FROM conversations
     WHERE id = $1
-      AND archived_at IS NULL
       AND (user_one = $2 OR user_two = $2)
     `,
     [conversation_id, senderId]
@@ -35,11 +34,12 @@ export async function sendMessage(req, res) {
     [conversation_id, senderId, content]
   );
 
-  // Update conversation activity
+  // Update conversation activity + auto-unarchive
   await pool.query(
     `
     UPDATE conversations
-    SET last_message_at = CURRENT_TIMESTAMP
+    SET archived_by_user_one = FALSE,
+        archived_by_user_two = FALSE
     WHERE id = $1
     `,
     [conversation_id]
@@ -48,10 +48,14 @@ export async function sendMessage(req, res) {
   res.status(201).json(message.rows[0]);
 }
 
-/* Get messages in a conversation */
+/* Get messages in a conversation (paginated) */
 export async function getMessages(req, res) {
   const userId = req.user.id;
   const { conversation_id } = req.params;
+
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const offset = (page - 1) * limit;
 
   const convoCheck = await pool.query(
     `
@@ -67,6 +71,19 @@ export async function getMessages(req, res) {
     return res.status(403).json({ message: "Access denied" });
   }
 
+  const totalResult = await pool.query(
+    `
+    SELECT COUNT(*) AS total
+    FROM messages
+    WHERE conversation_id = $1
+      AND deleted_at IS NULL
+    `,
+    [conversation_id]
+  );
+
+  const total = parseInt(totalResult.rows[0].total, 10);
+  const totalPages = Math.ceil(total / limit);
+
   const result = await pool.query(
     `
     SELECT *
@@ -74,11 +91,19 @@ export async function getMessages(req, res) {
     WHERE conversation_id = $1
       AND deleted_at IS NULL
     ORDER BY created_at ASC, id ASC
+    LIMIT $2 OFFSET $3
     `,
-    [conversation_id]
+    [conversation_id, limit, offset]
   );
 
-  res.json(result.rows);
+  res.json({
+    page,
+    limit,
+    total,
+    totalPages,
+    hasMore: page < totalPages,
+    messages: result.rows,
+  });
 }
 
 /* Mark all messages in a conversation as read (per user) */
