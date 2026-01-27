@@ -1,5 +1,10 @@
 /* client/src/index.css */
-* {
+/* =========================
+   Global Reset & Defaults
+========================= */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -12,104 +17,182 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  background: linear-gradient(135deg, #f6f7fb 0%, #f3f6ff 50%, #f8fafc 100%);
+  line-height: 1.5;
+  background: linear-gradient(135deg, #f6f7fb 0%, #f8fafc 100%);
   color: #111827;
 }
 
-/* ====== Layout ====== */
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* =========================
+   Layout
+========================= */
 .app {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: clamp(16px, 4vw, 32px);
 }
 
 .card {
-  width: min(520px, 100%);
+  width: 100%;
+  max-width: 520px;
   background: #ffffff;
   border-radius: 16px;
+  padding: clamp(20px, 4vw, 32px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-  padding: 32px;
 }
 
-/* ====== Header ====== */
+/* =========================
+   Typography
+========================= */
 h1 {
-  font-size: 28px;
   margin: 0 0 16px;
   text-align: center;
+  font-size: clamp(1.4rem, 2.5vw, 1.75rem);
+  font-weight: 700;
 }
 
-/* ====== Form Styling ====== */
+label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* =========================
+   Status Messages
+========================= */
+.success {
+  color: #064e3b; /* AA contrast */
+  background: #d1fae5;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+/* =========================
+   Form Layout
+========================= */
 .form {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-label {
-  font-size: 14px;
-  color: #374151;
-}
-
+/* =========================
+   Inputs
+========================= */
 input {
   width: 100%;
   padding: 12px 14px;
+  font-size: 1rem;
+  border-radius: 12px;
   border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-size: 16px;
-  outline: none;
-}
-
-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
-}
-
-button {
-  width: 100%;
-  padding: 12px 14px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  background: #2563eb;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-button:hover {
-  background: #1d4ed8;
-}
-
-button:focus {
-  outline: 3px solid rgba(37, 99, 235, 0.4);
-}
-
-/* ====== Password Container ====== */
-.password-container {
-  position: relative;
-}
-
-.password-container input {
-  padding-right: 44px;
-}
-
-.password-container .material-symbols-outlined {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 22px;
-  color: #6b7280;
-}
-
-.password-container .material-symbols-outlined:hover {
+  background: #ffffff;
   color: #111827;
 }
 
-/* ====== Accessibility Helpers ====== */
+input::placeholder {
+  color: #6b7280;
+}
+
+input:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.35);
+}
+
+/* =========================
+   Password Field
+========================= */
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 48px;
+}
+
+.eye-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 40px;
+  min-height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #374151;
+}
+
+.eye-button:hover {
+  color: #111827;
+}
+
+.eye-button:focus {
+  outline: 3px solid rgba(29, 78, 216, 0.6);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* =========================
+   Buttons
+========================= */
+button[type="submit"] {
+  margin-top: 8px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: #1d4ed8;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background: #1e40af;
+}
+
+button[type="submit"]:focus {
+  outline: 3px solid rgba(29, 78, 216, 0.6);
+  outline-offset: 2px;
+}
+
+/* =========================
+   Helper Text / Links
+========================= */
+.helper-text {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.helper-text a {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.helper-text a:focus {
+  outline: 3px solid rgba(29, 78, 216, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* =========================
+   Screen Reader Only
+========================= */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -122,25 +205,22 @@ button:focus {
   border: 0;
 }
 
-/* ====== Responsive ====== */
+/* =========================
+   Responsive Tweaks
+========================= */
 @media (max-width: 768px) {
   .card {
-    padding: 24px;
     border-radius: 14px;
-  }
-
-  h1 {
-    font-size: 24px;
   }
 }
 
 @media (max-width: 480px) {
-  .card {
-    padding: 18px;
-    border-radius: 12px;
+  h1 {
+    font-size: 1.35rem;
   }
 
-  h1 {
-    font-size: 22px;
+  input,
+  button[type="submit"] {
+    font-size: 1rem;
   }
 }

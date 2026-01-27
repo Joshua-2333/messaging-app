@@ -19,11 +19,31 @@ function generateTokens(user) {
   return { accessToken, refreshToken };
 }
 
-export async function register(req, res) {
-  const { username, password, display_name } = req.body;
+// VALIDATION RULES
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const passwordRegex = /^(?=.*[A-Z]).{6,}$/;
 
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
+export async function register(req, res) {
+  const { username, password, email } = req.body;
+
+  // VALIDATION
+  if (!username || username.trim().length < 3) {
+    return res
+      .status(400)
+      .json({ message: "Username must be at least 3 characters." });
+  }
+
+  if (!email || !emailRegex.test(email)) {
+    return res
+      .status(400)
+      .json({ message: "Email must be valid (example@email.com)." });
+  }
+
+  if (!password || !passwordRegex.test(password)) {
+    return res.status(400).json({
+      message:
+        "Password must be at least 6 characters and include 1 capital letter.",
+    });
   }
 
   try {
@@ -31,11 +51,11 @@ export async function register(req, res) {
 
     const result = await pool.query(
       `
-      INSERT INTO users (username, password, display_name)
+      INSERT INTO users (username, email, password)
       VALUES ($1, $2, $3)
-      RETURNING id, username, display_name
+      RETURNING id, username, email
       `,
-      [username, hashedPassword, display_name || null]
+      [username, email, hashedPassword]
     );
 
     const user = result.rows[0];
@@ -47,21 +67,22 @@ export async function register(req, res) {
     );
 
     res.status(201).json({ user, ...tokens });
-  } catch {
-    res.status(400).json({ message: "Username already exists" });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: "Username or email already exists" });
   }
 }
 
 export async function login(req, res) {
-  const { username, password } = req.body;
+  const { usernameOrEmail, password } = req.body;
 
-  if (!username || !password) {
+  if (!usernameOrEmail || !password) {
     return res.status(400).json({ message: "Missing credentials" });
   }
 
   const result = await pool.query(
-    "SELECT * FROM users WHERE username = $1",
-    [username]
+    `SELECT * FROM users WHERE username = $1 OR email = $1`,
+    [usernameOrEmail]
   );
 
   const user = result.rows[0];
@@ -88,4 +109,53 @@ export async function logout(req, res) {
   );
 
   res.json({ message: "Logged out" });
+}
+
+// NEW: Refresh Route
+export async function refreshToken(req, res) {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token missing" });
+  }
+
+  const result = await pool.query(
+    "SELECT * FROM refresh_tokens WHERE token = $1",
+    [refreshToken]
+  );
+
+  if (!result.rows.length) {
+    return res.status(403).json({ message: "Invalid refresh token" });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    const userResult = await pool.query(
+      "SELECT id, username, email FROM users WHERE id = $1",
+      [decoded.id]
+    );
+
+    const user = userResult.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    const tokens = generateTokens(user);
+
+    await pool.query(
+      "DELETE FROM refresh_tokens WHERE token = $1",
+      [refreshToken]
+    );
+
+    await pool.query(
+      "INSERT INTO refresh_tokens (user_id, token) VALUES ($1, $2)",
+      [user.id, tokens.refreshToken]
+    );
+
+    res.json({ user, ...tokens });
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid or expired refresh token" });
+  }
 }

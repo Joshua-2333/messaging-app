@@ -1,77 +1,126 @@
 // client/src/components/Register.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import API from "../api/api";
-import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleRegister = async () => {
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (form.username.trim().length < 3) {
+      newErrors.username = "Username must be at least 3 characters.";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(form.email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    const passwordRegex = /^(?=.*[A-Z]).{6,}$/;
+    if (!passwordRegex.test(form.password)) {
+      newErrors.password =
+        "Password must be at least 6 characters and include one capital letter.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setServerError("");
+
+    if (!validate()) return;
+
     try {
-      const res = await API.post("/auth/register", {
-        username,
-        password,
-        display_name: displayName,
-      });
-
-      const token = res.data.token;
-      const user = res.data.user;
-
-      login(user, token);
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-      alert("Registration failed");
+      await API.post("/auth/register", form);
+      navigate("/login", { state: { registered: true } });
+    } catch {
+      setServerError("Registration failed. Please try again.");
     }
   };
 
   return (
-    <div>
-      <h1>Register</h1>
+    <div className="app">
+      <div className="card">
+        <h1>Create Account</h1>
 
-      <input
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
+        {serverError && (
+          <p role="alert" className="error">
+            {serverError}
+          </p>
+        )}
 
-      <div style={{ position: "relative" }}>
-        <input
-          placeholder="Password"
-          type={showPassword ? "text" : "password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <form onSubmit={handleSubmit} className="form" noValidate>
+          <label htmlFor="username">Username</label>
+          <input
+            id="username"
+            value={form.username}
+            onChange={handleChange}
+            autoComplete="username"
+            required
+            aria-invalid={!!errors.username}
+          />
+          {errors.username && <p className="error">{errors.username}</p>}
 
-        {/* Eye icon */}
-        <span
-          style={{
-            position: "absolute",
-            right: "10px",
-            top: "10px",
-            cursor: "pointer",
-            fontSize: "20px",
-          }}
-          onClick={() => setShowPassword(!showPassword)}
-        >
-          👁️
-        </span>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            autoComplete="email"
+            required
+            aria-invalid={!!errors.email}
+          />
+          {errors.email && <p className="error">{errors.email}</p>}
+
+          <label htmlFor="password">Password</label>
+          <div className="password-wrapper">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="new-password"
+              required
+              aria-invalid={!!errors.password}
+            />
+            <button
+              type="button"
+              className="eye-button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              👁️
+            </button>
+          </div>
+          {errors.password && <p className="error">{errors.password}</p>}
+
+          <button type="submit">Sign up</button>
+        </form>
+
+        <p className="helper-text">
+          Already have an account? <Link to="/login">Login</Link>
+        </p>
       </div>
-
-      <input
-        placeholder="Display name"
-        value={displayName}
-        onChange={(e) => setDisplayName(e.target.value)}
-      />
-
-      <button onClick={handleRegister}>Register</button>
     </div>
   );
 }
