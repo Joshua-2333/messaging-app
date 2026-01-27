@@ -1,7 +1,4 @@
 /* client/src/index.css */
-/* =========================
-   Global Reset & Defaults
-========================= */
 *,
 *::before,
 *::after {
@@ -30,9 +27,7 @@ body {
   }
 }
 
-/* =========================
-   Layout
-========================= */
+/* container for login/register pages */
 .app {
   min-height: 100vh;
   display: flex;
@@ -50,9 +45,7 @@ body {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
 
-/* =========================
-   Typography
-========================= */
+/* typography */
 h1 {
   margin: 0 0 16px;
   text-align: center;
@@ -66,11 +59,9 @@ label {
   color: #1f2937;
 }
 
-/* =========================
-   Status Messages
-========================= */
+/* messages */
 .success {
-  color: #064e3b; /* AA contrast */
+  color: #064e3b;
   background: #d1fae5;
   padding: 12px;
   border-radius: 8px;
@@ -78,18 +69,22 @@ label {
   font-size: 0.95rem;
 }
 
-/* =========================
-   Form Layout
-========================= */
+.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-top: -8px;
+}
+
+/* forms */
 .form {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-/* =========================
-   Inputs
-========================= */
 input {
   width: 100%;
   padding: 12px 14px;
@@ -104,15 +99,14 @@ input::placeholder {
   color: #6b7280;
 }
 
-input:focus {
+input:focus,
+input:focus-visible {
   outline: none;
   border-color: #1d4ed8;
   box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.35);
 }
 
-/* =========================
-   Password Field
-========================= */
+/* password field */
 .password-wrapper {
   position: relative;
 }
@@ -139,16 +133,15 @@ input:focus {
   color: #111827;
 }
 
-.eye-button:focus {
+.eye-button:focus-visible {
   outline: 3px solid rgba(29, 78, 216, 0.6);
   outline-offset: 2px;
   border-radius: 8px;
 }
 
-/* =========================
-   Buttons
-========================= */
-button[type="submit"] {
+/* submit buttons */
+button[type="submit"],
+button.logout-btn {
   margin-top: 8px;
   padding: 14px;
   font-size: 1rem;
@@ -158,20 +151,38 @@ button[type="submit"] {
   border: none;
   border-radius: 12px;
   cursor: pointer;
+  min-height: 44px;
 }
 
-button[type="submit"]:hover {
+button[type="submit"]:hover,
+button.logout-btn:hover {
   background: #1e40af;
 }
 
-button[type="submit"]:focus {
+button[type="submit"]:focus-visible,
+button.logout-btn:focus-visible {
   outline: 3px solid rgba(29, 78, 216, 0.6);
   outline-offset: 2px;
 }
 
-/* =========================
-   Helper Text / Links
-========================= */
+/* Remember Me checkbox */
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #1d4ed8;
+}
+
+/* helper text links */
 .helper-text {
   margin-top: 14px;
   text-align: center;
@@ -184,15 +195,13 @@ button[type="submit"]:focus {
   text-decoration: underline;
 }
 
-.helper-text a:focus {
+.helper-text a:focus-visible {
   outline: 3px solid rgba(29, 78, 216, 0.6);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* =========================
-   Screen Reader Only
-========================= */
+/* screen reader only */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -205,12 +214,82 @@ button[type="submit"]:focus {
   border: 0;
 }
 
-/* =========================
-   Responsive Tweaks
-========================= */
+/* home page container */
+.home-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 32px);
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.home-header h1 {
+  font-size: clamp(1.6rem, 2vw, 2rem);
+  margin: 0;
+  text-align: left;
+}
+
+/* logout button on home page */
+.logout-btn {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  background: #ef4444;
+  color: #ffffff;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  width: auto;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
+
+.logout-btn:focus-visible {
+  outline: 3px solid rgba(220, 38, 38, 0.6);
+  outline-offset: 2px;
+}
+
+/* conversations list */
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.conversation-item {
+  padding: 14px 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.conversation-item:hover,
+.conversation-item:focus-visible {
+  background: #e0e7ff;
+}
+
+/* responsive tweaks */
 @media (max-width: 768px) {
   .card {
     border-radius: 14px;
+    padding: 16px;
+  }
+
+  .home-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .logout-btn {
+    width: 100%;
   }
 }
 
@@ -220,7 +299,8 @@ button[type="submit"]:focus {
   }
 
   input,
-  button[type="submit"] {
+  button[type="submit"],
+  .logout-btn {
     font-size: 1rem;
   }
 }

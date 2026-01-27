@@ -1,4 +1,4 @@
-// client/src/components/Register.jsx
+// client/src/components/Login.jsx
 import React, { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import API from "../api/api";
@@ -7,12 +7,12 @@ import { useAuth } from "../context/AuthContext";
 export default function Login() {
   const [form, setForm] = useState({ usernameOrEmail: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
 
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const registered = location.state?.registered;
 
   const handleChange = (e) => {
@@ -24,8 +24,8 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await API.post("/auth/login", form);
-      login(res.data.user, res.data.accessToken);
+      const res = await API.post("/auth/login", { ...form, rememberMe });
+      login(res.data.user, res.data.accessToken, rememberMe);
       navigate("/");
     } catch {
       setError("Invalid username or password.");
@@ -43,11 +43,7 @@ export default function Login() {
           </p>
         )}
 
-        {error && (
-          <p role="alert" className="error">
-            {error}
-          </p>
-        )}
+        {error && <p role="alert" className="error">{error}</p>}
 
         <form onSubmit={handleSubmit} className="form" noValidate>
           <label htmlFor="usernameOrEmail">Email or Username</label>
@@ -79,6 +75,15 @@ export default function Login() {
               👁️
             </button>
           </div>
+
+          <label className="remember-me">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            Remember Me
+          </label>
 
           <button type="submit">Login</button>
         </form>

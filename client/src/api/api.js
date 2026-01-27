@@ -3,6 +3,7 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: "http://localhost:3000/api",
+  withCredentials: true,
 });
 
 // Attach JWT token automatically
@@ -23,7 +24,6 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If unauthorized AND not already retrying
     if (
       error.response?.status === 401 &&
       !originalRequest._retry
@@ -31,26 +31,20 @@ API.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-
         const res = await axios.post(
-          "http://localhost:3000/api/auth/refresh",
-          { refreshToken }
+          "http://localhost:3000/api/token/refresh",
+          {},
+          { withCredentials: true }
         );
 
-        // Save new tokens
         localStorage.setItem("token", res.data.accessToken);
-        localStorage.setItem("refreshToken", res.data.refreshToken);
 
-        // Update header and retry original request
         originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
 
         return API(originalRequest);
       } catch (err) {
-        // If refresh fails, logout
         localStorage.removeItem("user");
         localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
         return Promise.reject(err);
       }
     }

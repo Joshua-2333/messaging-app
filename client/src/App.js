@@ -8,25 +8,46 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
 
+// ProtectedRoute wrapper
 function ProtectedRoute({ children }) {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  return user ? children : <Navigate to="/login" replace />;
 }
 
 function App() {
   const { user, loading } = useAuth();
 
+  // Optional: global loading while auth refresh is in progress
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   return (
     <Routes>
-      {/* Public */}
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-      <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+      {/* Public Routes */}
+      <Route
+        path="/login"
+        element={!user ? <Login /> : <Navigate to="/" replace />}
+      />
+      <Route
+        path="/register"
+        element={!user ? <Register /> : <Navigate to="/" replace />}
+      />
 
-      {/* Protected */}
+      {/* Protected Routes */}
       <Route
         path="/"
         element={
@@ -35,7 +56,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/chat/:conversationId"
         element={
@@ -44,7 +64,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/profile"
         element={
@@ -54,8 +73,8 @@ function App() {
         }
       />
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/" />} />
+      {/* Catch-all: redirect unknown paths */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

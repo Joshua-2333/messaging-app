@@ -19,30 +19,38 @@ function generateTokens(user) {
   return { accessToken, refreshToken };
 }
 
-// VALIDATION RULES
+// Validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const passwordRegex = /^(?=.*[A-Z]).{6,}$/;
 
+// Set refresh cookie with optional "remember me" flag
+function setRefreshCookie(res, token, remember = true) {
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  };
+
+  if (remember) {
+    options.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+  }
+
+  res.cookie("refreshToken", token, options);
+}
+
+// ------------------ REGISTER ------------------
 export async function register(req, res) {
   const { username, password, email } = req.body;
 
-  // VALIDATION
   if (!username || username.trim().length < 3) {
-    return res
-      .status(400)
-      .json({ message: "Username must be at least 3 characters." });
+    return res.status(400).json({ message: "Username must be at least 3 characters." });
   }
-
   if (!email || !emailRegex.test(email)) {
-    return res
-      .status(400)
-      .json({ message: "Email must be valid (example@email.com)." });
+    return res.status(400).json({ message: "Email must be valid." });
   }
-
   if (!password || !passwordRegex.test(password)) {
     return res.status(400).json({
-      message:
-        "Password must be at least 6 characters and include 1 capital letter.",
+      message: "Password must be at least 6 characters and include 1 capital letter.",
     });
   }
 
@@ -66,15 +74,18 @@ export async function register(req, res) {
       [user.id, tokens.refreshToken]
     );
 
-    res.status(201).json({ user, ...tokens });
+    setRefreshCookie(res, tokens.refreshToken); // always remember on register
+
+    res.status(201).json({ user, accessToken: tokens.accessToken });
   } catch (err) {
     console.error(err);
     res.status(400).json({ message: "Username or email already exists" });
   }
 }
 
+// ------------------ LOGIN ------------------
 export async function login(req, res) {
-  const { usernameOrEmail, password } = req.body;
+  const { usernameOrEmail, password, rememberMe } = req.body;
 
   if (!usernameOrEmail || !password) {
     return res.status(400).json({ message: "Missing credentials" });
@@ -97,23 +108,28 @@ export async function login(req, res) {
     [user.id, tokens.refreshToken]
   );
 
-  res.json({ user, ...tokens });
+  setRefreshCookie(res, tokens.refreshToken, rememberMe); // <-- respect rememberMe
+
+  res.json({ user, accessToken: tokens.accessToken });
 }
 
+// ------------------ LOGOUT ------------------
 export async function logout(req, res) {
-  const { refreshToken } = req.body;
+  const refreshToken = req.cookies.refreshToken;
 
   await pool.query(
     "DELETE FROM refresh_tokens WHERE token = $1",
     [refreshToken]
   );
 
+  res.clearCookie("refreshToken");
+
   res.json({ message: "Logged out" });
 }
 
-// NEW: Refresh Route
+// ------------------ REFRESH ------------------
 export async function refreshToken(req, res) {
-  const { refreshToken } = req.body;
+  const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
     return res.status(401).json({ message: "Refresh token missing" });
@@ -154,7 +170,9 @@ export async function refreshToken(req, res) {
       [user.id, tokens.refreshToken]
     );
 
-    res.json({ user, ...tokens });
+    setRefreshCookie(res, tokens.refreshToken);
+
+    res.json({ user, accessToken: tokens.accessToken });
   } catch (err) {
     return res.status(403).json({ message: "Invalid or expired refresh token" });
   }
