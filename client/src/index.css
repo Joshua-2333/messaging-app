@@ -1,4 +1,7 @@
 /* client/src/index.css */
+/* ==================================================
+   RESET + BASE
+================================================== */
 *,
 *::before,
 *::after {
@@ -8,18 +11,58 @@
 html,
 body {
   height: 100%;
+  margin: 0;
 }
 
 body {
-  margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   line-height: 1.5;
-  background: linear-gradient(135deg, #f6f7fb 0%, #f8fafc 100%);
-  color: #111827;
+  background: var(--bg);
+  color: var(--text);
 }
 
-/* Respect reduced motion preferences */
+/* ==================================================
+   THEME VARIABLES
+================================================== */
+:root {
+  --bg: #f8fafc;
+  --bg-card: #ffffff;
+  --surface: #f1f5f9;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --border: #d1d5db;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+
+  --danger: #ef4444;
+  --danger-hover: #b91c1c;
+
+  --focus: rgba(37, 99, 235, 0.6);
+  --transition: 0.25s ease;
+}
+
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --bg-card: #020617;
+  --surface: #020617;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border: #1f2937;
+
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+
+  --danger: #f87171;
+  --danger-hover: #ef4444;
+
+  --focus: rgba(59, 130, 246, 0.7);
+}
+
+/* ==================================================
+   ACCESSIBILITY
+================================================== */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
@@ -27,7 +70,22 @@ body {
   }
 }
 
-/* container for login/register pages */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* ==================================================
+   AUTH PAGES (LOCKED — DO NOT BREAK)
+================================================== */
 .app {
   min-height: 100vh;
   display: flex;
@@ -36,83 +94,94 @@ body {
   padding: clamp(16px, 4vw, 32px);
 }
 
-.card {
+.app .card {
   width: 100%;
-  max-width: 520px;
-  background: #ffffff;
+  max-width: 420px;
+  background: var(--bg-card);
   border-radius: 16px;
-  padding: clamp(20px, 4vw, 32px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12);
 }
 
-/* typography */
-h1 {
-  margin: 0 0 16px;
+.app h1 {
   text-align: center;
-  font-size: clamp(1.4rem, 2.5vw, 1.75rem);
-  font-weight: 700;
+  margin-bottom: 24px;
 }
 
-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-/* messages */
-.success {
-  color: #064e3b;
-  background: #d1fae5;
-  padding: 12px;
-  border-radius: 8px;
-  text-align: center;
-  font-size: 0.95rem;
-}
-
-.error {
-  color: #b91c1c;
-  background: #fee2e2;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-top: -8px;
-}
-
-/* forms */
-.form {
+.app .form {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-input {
+.app label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.app input {
   width: 100%;
   padding: 12px 14px;
-  font-size: 1rem;
   border-radius: 12px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #111827;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 1rem;
 }
 
-input::placeholder {
-  color: #6b7280;
+.app input::placeholder {
+  color: var(--text-muted);
 }
 
-input:focus,
-input:focus-visible {
-  outline: none;
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.35);
+.app input:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus);
 }
 
-/* password field */
+/* ==================================================
+   🔴 VALIDATION ERRORS (NEW PATCH)
+================================================== */
+
+/* red border for invalid input */
+.app input.input-error {
+  border-color: var(--danger);
+}
+
+/* small text under input */
+.input-error-text {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+/* top form error box */
+.form-error-box {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+/* inline error paragraph (like <p class="error">) */
+.error {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* ===============================
+   PASSWORD FIELD
+================================ */
 .password-wrapper {
   position: relative;
 }
 
 .password-wrapper input {
-  padding-right: 48px;
+  padding-right: 52px;
 }
 
 .eye-button {
@@ -120,187 +189,229 @@ input:focus-visible {
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  min-width: 40px;
-  min-height: 40px;
-  background: none;
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 20px;
-  color: #374151;
+  font-size: 1.1rem;
+  color: var(--text-muted);
 }
 
 .eye-button:hover {
-  color: #111827;
+  color: var(--text);
 }
 
-.eye-button:focus-visible {
-  outline: 3px solid rgba(29, 78, 216, 0.6);
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-
-/* submit buttons */
-button[type="submit"],
-button.logout-btn {
-  margin-top: 8px;
-  padding: 14px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: #1d4ed8;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  min-height: 44px;
-}
-
-button[type="submit"]:hover,
-button.logout-btn:hover {
-  background: #1e40af;
-}
-
-button[type="submit"]:focus-visible,
-button.logout-btn:focus-visible {
-  outline: 3px solid rgba(29, 78, 216, 0.6);
-  outline-offset: 2px;
-}
-
-/* Remember Me checkbox */
+/* ===============================
+   REMEMBER ME
+================================ */
 .remember-me {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
-  color: #1f2937;
+  font-size: 0.85rem;
+  color: var(--text-muted);
   cursor: pointer;
+  margin-top: 4px;
 }
 
 .remember-me input[type="checkbox"] {
   width: 16px;
   height: 16px;
+  margin: 0;
   cursor: pointer;
-  accent-color: #1d4ed8;
 }
 
-/* helper text links */
+/* ===============================
+   SUBMIT
+================================ */
+.app button[type="submit"] {
+  margin-top: 12px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app button[type="submit"]:hover {
+  background: var(--primary-hover);
+}
+
+/* ===============================
+   FOOTER TEXT
+================================ */
 .helper-text {
-  margin-top: 14px;
+  margin-top: 18px;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .helper-text a {
-  color: #1d4ed8;
+  color: var(--primary);
   font-weight: 600;
+  text-decoration: none;
+}
+
+.helper-text a:hover {
   text-decoration: underline;
 }
 
-.helper-text a:focus-visible {
-  outline: 3px solid rgba(29, 78, 216, 0.6);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* screen reader only */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* home page container */
-.home-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: clamp(16px, 4vw, 32px);
-}
-
-.home-header {
+/* ==================================================
+   CHAT LAYOUT
+================================================== */
+.chat-layout {
   display: flex;
-  align-items: center;
+  height: 100vh;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Sidebar */
+.chat-sidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
+  align-items: center;
 }
 
-.home-header h1 {
-  font-size: clamp(1.6rem, 2vw, 2rem);
-  margin: 0;
-  text-align: left;
+.sidebar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
-/* logout button on home page */
-.logout-btn {
-  padding: 10px 16px;
-  font-size: 0.95rem;
-  background: #ef4444;
-  color: #ffffff;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  width: auto;
-}
-
-.logout-btn:hover {
-  background: #b91c1c;
-}
-
-.logout-btn:focus-visible {
-  outline: 3px solid rgba(220, 38, 38, 0.6);
-  outline-offset: 2px;
-}
-
-/* conversations list */
+/* Conversations */
 .conversation-list {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.conversation-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.conversation-item:hover {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.conversation-item.active {
+  background: rgba(99, 102, 241, 0.25);
+  font-weight: 600;
+}
+
+/* Main */
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+/* Header */
+.chat-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.chat-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Messages */
+.chat-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.message-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.conversation-item {
-  padding: 14px 16px;
-  background: #f9fafb;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
+.message-item {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 0.95rem;
 }
 
-.conversation-item:hover,
-.conversation-item:focus-visible {
-  background: #e0e7ff;
+.message-item.self {
+  align-self: flex-end;
+  background: var(--primary);
+  color: #fff;
 }
 
-/* responsive tweaks */
+.message-item.other {
+  align-self: flex-start;
+  background: var(--bg-card);
+}
+
+/* Input */
+.chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.chat-input textarea {
+  flex: 1;
+  border-radius: 20px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  resize: none;
+}
+
+.chat-input button {
+  border-radius: 20px;
+  padding: 10px 18px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+}
+
+.chat-input button:hover {
+  background: var(--primary-hover);
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
 @media (max-width: 768px) {
-  .card {
-    border-radius: 14px;
-    padding: 16px;
-  }
-
-  .home-header {
+  .chat-layout {
     flex-direction: column;
-    align-items: stretch;
   }
 
-  .logout-btn {
+  .chat-sidebar {
     width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.35rem;
-  }
-
-  input,
-  button[type="submit"],
-  .logout-btn {
-    font-size: 1rem;
+    order: 2;
   }
 }

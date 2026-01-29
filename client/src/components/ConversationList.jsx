@@ -1,17 +1,31 @@
 // client/src/components/ConversationList.jsx
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import API from "../api/api";
 
-export default function ConversationList({ conversations }) {
+export default function ConversationList() {
+  const [conversations, setConversations] = useState([]);
+  const { conversationId } = useParams();
+
+  useEffect(() => {
+    API.get("/conversations")
+      .then((res) => setConversations(res.data))
+      .catch(console.error);
+  }, []);
+
   return (
-    <div>
+    <div className="conversation-list">
       {conversations.map((c) => (
-        <Link key={c.conversation_id} to={`/chat/${c.conversation_id}`}>
-          <div>
-            <h3>{c.other_user.username}</h3>
-            <p>Unread: {c.unread_count}</p>
-            <p>Last: {c.last_message || "No messages yet"}</p>
-          </div>
+        <Link
+          key={c.conversation_id}
+          to={`/chat/${c.conversation_id}`}
+          className={`conversation-item ${
+            Number(conversationId) === c.conversation_id ? "active" : ""
+          }`}
+        >
+          <h3>{c.other_user.username}</h3>
+          <p className="muted">{c.last_message || "No messages yet"}</p>
+          {c.unread_count > 0 && <span className="badge">{c.unread_count}</span>}
         </Link>
       ))}
     </div>

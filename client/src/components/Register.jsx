@@ -61,6 +61,7 @@ export default function Register() {
       <div className="card">
         <h1>Create Account</h1>
 
+        {/* Top-level server error */}
         {serverError && (
           <p role="alert" className="error">
             {serverError}

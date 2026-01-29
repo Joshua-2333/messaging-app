@@ -37,12 +37,14 @@ export default function Login() {
       <div className="card">
         <h1>Login</h1>
 
+        {/* Show registration success */}
         {registered && (
           <p role="status" className="success">
             Account created! Please log in.
           </p>
         )}
 
+        {/* Top-level form error */}
         {error && <p role="alert" className="error">{error}</p>}
 
         <form onSubmit={handleSubmit} className="form" noValidate>
