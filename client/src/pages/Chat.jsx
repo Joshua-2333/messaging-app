@@ -1,9 +1,16 @@
 // client/src/pages/Chat.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import API from "../api/api";
-import MessageList from "../components/MessageList";
 import { useAuth } from "../context/AuthContext";
+import MessageList from "../components/MessageList";
+import { mockConversations, mockMessages } from "../mockData/messages";
+
+// Map conversation/user IDs to icons
+const ICONS = {
+  c1: "/vivi-icon.png",   // Alice
+  c2: "/Majora.jpg",      // Bob
+  c3: "/BG3.png",         // Game Night
+};
 
 export default function Chat() {
   const { conversationId } = useParams();
@@ -11,56 +18,52 @@ export default function Chat() {
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const bottomRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  const loadMessages = async (pageNum = 1) => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const res = await API.get(`/messages/${conversationId}?page=${pageNum}`);
-      setMessages((prev) =>
-        pageNum === 1 ? res.data.messages : [...res.data.messages, ...prev]
-      );
-      setHasMore(res.data.hasMore);
-      setPage(pageNum);
-    } catch (err) {
-      console.error("Error loading messages:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load messages
   useEffect(() => {
-    setMessages([]);
-    setPage(1);
-    loadMessages(1);
+    const convoMessages = mockMessages.filter(
+      (m) => m.conversationId === conversationId
+    );
+    setMessages(convoMessages);
   }, [conversationId]);
 
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Auto-expand textarea
   useEffect(() => {
-    API.patch(`/messages/${conversationId}/read`).catch(() => {});
-  }, [conversationId]);
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
-  const sendMessage = async () => {
+    const resize = () => {
+      textarea.style.height = "auto";
+      textarea.style.height = textarea.scrollHeight + "px";
+    };
+
+    textarea.addEventListener("input", resize);
+    resize();
+
+    return () => textarea.removeEventListener("input", resize);
+  }, []);
+
+  const sendMessage = () => {
     if (!text.trim()) return;
-    const payload = text;
+
+    const newMessage = {
+      id: "m" + Date.now(),
+      conversationId,
+      sender: user?.id || "me",
+      content: text,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
     setText("");
-    try {
-      await API.post("/messages", {
-        conversation_id: conversationId,
-        content: payload,
-      });
-      loadMessages(1);
-    } catch {
-      setText(payload);
-    }
   };
 
   const handleKeyDown = (e) => {
@@ -70,29 +73,40 @@ export default function Chat() {
     }
   };
 
+  const conversation = mockConversations.find(
+    (c) => c.id === conversationId
+  );
+
   return (
-    <div className="chat-main">
-      <header className="chat-header">
-        <h2 className="chat-title">Conversation</h2>
-      </header>
+    <div className="chat-content">
+      {/* Header with icon */}
+      {conversation && (
+        <header className="chat-header" role="banner">
+          <div className="chat-header-info">
+            <img
+              src={ICONS[conversation.id]}
+              alt={`${conversation.name} icon`}
+              className="chat-header-icon"
+            />
+            <h2 className="chat-title">{conversation.name}</h2>
+          </div>
+        </header>
+      )}
 
-      <div className="chat-panel" role="log" aria-live="polite">
-        {hasMore && (
-          <button
-            className="load-more"
-            onClick={() => loadMessages(page + 1)}
-            disabled={loading}
-          >
-            Load older messages
-          </button>
-        )}
-
-        <MessageList messages={messages} currentUser={user?.id} />
+      {/* Messages */}
+      <div className="messages-scroll" role="log" aria-live="polite">
+        <MessageList
+          messages={messages}
+          currentUser={user?.id || "me"}
+          isGroup={conversation?.type === "group"}
+          iconsMap={ICONS}
+        />
         <div ref={bottomRef} />
       </div>
 
+      {/* Input */}
       <form
-        className="message-input"
+        className="chat-input"
         onSubmit={(e) => {
           e.preventDefault();
           sendMessage();
@@ -101,8 +115,10 @@ export default function Chat() {
         <label htmlFor="message-input" className="sr-only">
           Type your message
         </label>
+
         <textarea
           id="message-input"
+          ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -110,7 +126,12 @@ export default function Chat() {
           rows={1}
           aria-label="Message input"
         />
-        <button type="submit" disabled={!text.trim()} aria-label="Send message">
+
+        <button
+          type="submit"
+          disabled={!text.trim()}
+          aria-label="Send message"
+        >
           Send
         </button>
       </form>

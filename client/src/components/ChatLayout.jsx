@@ -20,20 +20,24 @@ export default function ChatLayout() {
           </div>
         </header>
 
-        <nav aria-label="Conversations">
+        {/* Conversation list */}
+        <nav className="sidebar-scroll" aria-label="Conversations">
           <ConversationList />
         </nav>
       </aside>
 
       {/* Main chat area */}
       <main className="chat-main" role="main">
+        {/* Chat header */}
         <ChatHeader />
-        <section className="chat-panel" aria-label="Message feed" role="region">
+
+        {/* Outlet renders Chat.jsx */}
+        <div className="chat-outlet">
           <Outlet />
-        </section>
+        </div>
       </main>
 
-      {/* Mobile navigation (hidden on desktop) */}
+      {/* Mobile bottom navigation */}
       <MobileNav />
     </div>
   );

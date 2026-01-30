@@ -1,22 +1,45 @@
 // client/src/components/MobileNav.jsx
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState } from "react";
+import ConversationList from "./ConversationList";
 
 export default function MobileNav() {
-  return (
-    <nav
-      className="mobile-nav"
-      aria-label="Primary navigation"
-    >
-      <NavLink to="/" end>
-        <span className="material-symbols-outlined">home</span>
-        <span className="nav-label">Home</span>
-      </NavLink>
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-      <NavLink to="/profile">
-        <span className="material-symbols-outlined">person</span>
-        <span className="nav-label">Profile</span>
-      </NavLink>
-    </nav>
+  const toggleDrawer = () => setDrawerOpen((prev) => !prev);
+
+  return (
+    <>
+      {/* Bottom navigation bar */}
+      <nav className="mobile-nav" aria-label="Primary mobile navigation">
+        <button
+          onClick={toggleDrawer}
+          aria-expanded={drawerOpen}
+          aria-controls="mobile-drawer"
+        >
+          Conversations
+        </button>
+      </nav>
+
+      {/* Sliding drawer */}
+      <aside
+        id="mobile-drawer"
+        className={`mobile-drawer ${drawerOpen ? "open" : ""}`}
+        role="dialog"
+        aria-modal="true"
+      >
+        <header className="drawer-header">
+          <h2>Conversations</h2>
+          <button onClick={toggleDrawer} aria-label="Close drawer">
+            ✕
+          </button>
+        </header>
+        <div className="drawer-body">
+          <ConversationList />
+        </div>
+      </aside>
+
+      {/* Overlay */}
+      {drawerOpen && <div className="drawer-overlay" onClick={toggleDrawer} />}
+    </>
   );
 }
