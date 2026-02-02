@@ -27,12 +27,13 @@ export async function register(req, res) {
 }
 
 export async function login(req, res) {
-  const { email, password } = req.body;
+  const { usernameOrEmail, password } = req.body;
 
   try {
+    // Query for username OR email
     const result = await pool.query(
-      `SELECT * FROM users WHERE email=$1`,
-      [email]
+      `SELECT * FROM users WHERE username=$1 OR email=$1`,
+      [usernameOrEmail]
     );
 
     const user = result.rows[0];
@@ -42,9 +43,10 @@ export async function login(req, res) {
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = generateToken(user);
+
     res.json({
       user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar },
-      token
+      token,
     });
   } catch (err) {
     console.error(err);
