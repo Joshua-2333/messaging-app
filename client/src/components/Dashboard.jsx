@@ -12,8 +12,8 @@ export default function Dashboard() {
 
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   /* ------------------ Fetch groups ------------------ */
   useEffect(() => {
@@ -25,12 +25,9 @@ export default function Dashboard() {
 
   /* ------------------ Fetch users ------------------ */
   useEffect(() => {
-    if (!token) return;
+    if (!token || !user) return;
     API.get("/users", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => {
-        const otherUsers = res.data.filter((u) => u.id !== user?.id);
-        setUsers(otherUsers);
-      })
+      .then((res) => setUsers(res.data.filter((u) => u.id !== user.id)))
       .catch(console.error);
   }, [token, user]);
 
@@ -46,7 +43,7 @@ export default function Dashboard() {
     API.get(endpoint, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => setMessages(res.data))
       .catch(console.error);
-  }, [token, selectedChat]);
+  }, [selectedChat, token]);
 
   const handleGroupSelect = (group) => setSelectedChat({ type: "group", data: group });
   const handleUserSelect = (dmUser) => setSelectedChat({ type: "dm", data: dmUser });
@@ -97,10 +94,18 @@ export default function Dashboard() {
               {users.map((u) => (
                 <li
                   key={u.id}
-                  className={selectedChat?.type === "dm" && selectedChat.data.id === u.id ? "selected" : ""}
+                  className={
+                    selectedChat?.type === "dm" && selectedChat.data.id === u.id
+                      ? "selected"
+                      : ""
+                  }
                   onClick={() => handleUserSelect(u)}
                 >
-                  {u.avatar && <img className="user-avatar" src={u.avatar} alt={u.username} />}
+                  <img
+                    className="user-avatar"
+                    src={u.avatar || "/vivi-icon.png"}
+                    alt={u.username}
+                  />
                   {u.username}
                 </li>
               ))}
@@ -110,7 +115,12 @@ export default function Dashboard() {
 
         <main className="chat-window">
           {selectedChat ? (
-            <ChatWindow messages={messages} chat={selectedChat} currentUser={user} />
+            <ChatWindow
+              messages={messages}
+              setMessages={setMessages}
+              chat={selectedChat}
+              currentUser={user}
+            />
           ) : (
             <p>Select a group or user to start chatting</p>
           )}

@@ -2,15 +2,12 @@
 import pool from "./pool.js";
 import bcrypt from "bcrypt";
 
-// CHANGE THIS to whatever the real current user is for seeding DMs
-const CURRENT_USER = { username: "Odyssey", email: "odyssey@example.com", password: "password123", avatar: "/Aqua.png" };
-
 async function seed() {
   try {
     console.log("Seeding DB...");
 
     /* =========================
-       DROP TABLES (clean slate)
+       0️⃣ Drop all tables
     ========================= */
     await pool.query(`DROP TABLE IF EXISTS messages;`);
     await pool.query(`DROP TABLE IF EXISTS group_users;`);
@@ -18,7 +15,7 @@ async function seed() {
     await pool.query(`DROP TABLE IF EXISTS users;`);
 
     /* =========================
-       USERS TABLE
+       1️⃣ Create tables
     ========================= */
     await pool.query(`
       CREATE TABLE users (
@@ -31,9 +28,6 @@ async function seed() {
       );
     `);
 
-    /* =========================
-       GROUPS TABLE
-    ========================= */
     await pool.query(`
       CREATE TABLE groups (
         id SERIAL PRIMARY KEY,
@@ -44,21 +38,15 @@ async function seed() {
       );
     `);
 
-    /* =========================
-       GROUP_USERS (junction)
-    ========================= */
     await pool.query(`
       CREATE TABLE group_users (
         id SERIAL PRIMARY KEY,
         group_id INT REFERENCES groups(id) ON DELETE CASCADE,
         user_id INT REFERENCES users(id) ON DELETE CASCADE,
-        UNIQUE (group_id, user_id)
+        UNIQUE(group_id, user_id)
       );
     `);
 
-    /* =========================
-       MESSAGES (group + DM)
-    ========================= */
     await pool.query(`
       CREATE TABLE messages (
         id SERIAL PRIMARY KEY,
@@ -72,27 +60,25 @@ async function seed() {
     `);
 
     /* =========================
-       SEED USERS
+       2️⃣ Seed scripted users
     ========================= */
-    const staticUsers = [
+    const coreUsers = [
       { username: "Alice", email: "alice@example.com", password: "password123", avatar: "/vivi-icon.png" },
       { username: "Kyle", email: "kyle@example.com", password: "password123", avatar: "/Majora.jpg" },
       { username: "Sophie", email: "sophie@example.com", password: "password123", avatar: "/rem.png" },
       { username: "Dan", email: "dan@example.com", password: "password123", avatar: "/Kakashi.png" }
     ];
 
-    const allUsers = [...staticUsers, CURRENT_USER];
-
-    for (const u of allUsers) {
+    for (const u of coreUsers) {
       const hash = await bcrypt.hash(u.password, 10);
       await pool.query(
-        `INSERT INTO users (username, email, password, avatar) VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO users (username, email, password, avatar) VALUES ($1,$2,$3,$4)`,
         [u.username, u.email, hash, u.avatar]
       );
     }
 
     /* =========================
-       SEED GROUPS
+       3️⃣ Seed groups
     ========================= */
     await pool.query(`
       INSERT INTO groups (name, is_private, avatar)
@@ -102,52 +88,107 @@ async function seed() {
     `);
 
     /* =========================
-       GROUP MEMBERS
+       4️⃣ Add scripted users to groups
     ========================= */
-    await pool.query(`
-      INSERT INTO group_users (group_id, user_id)
-      VALUES
-        ((SELECT id FROM groups WHERE name='Game Groupchat'), (SELECT id FROM users WHERE username='Sophie')),
-        ((SELECT id FROM groups WHERE name='Game Groupchat'), (SELECT id FROM users WHERE username='Dan')),
-        ((SELECT id FROM groups WHERE name='Game Groupchat'), (SELECT id FROM users WHERE username='${CURRENT_USER.username}')),
-        ((SELECT id FROM groups WHERE name='Study Groupchat'), (SELECT id FROM users WHERE username='Alice')),
-        ((SELECT id FROM groups WHERE name='Study Groupchat'), (SELECT id FROM users WHERE username='Kyle')),
-        ((SELECT id FROM groups WHERE name='Study Groupchat'), (SELECT id FROM users WHERE username='${CURRENT_USER.username}'));
-    `);
+    const groupMembers = [
+      { group: "Game Groupchat", users: ["Sophie", "Dan"] },
+      { group: "Study Groupchat", users: ["Alice", "Kyle"] }
+    ];
+
+    for (const gm of groupMembers) {
+      for (const username of gm.users) {
+        await pool.query(`
+          INSERT INTO group_users (group_id, user_id)
+          VALUES ((SELECT id FROM groups WHERE name=$1), (SELECT id FROM users WHERE username=$2))
+        `, [gm.group, username]);
+      }
+    }
 
     /* =========================
-       SAMPLE GROUP MESSAGES
-       recipient_id = NULL for group messages
+       5️⃣ Sample group messages
     ========================= */
     await pool.query(`
       INSERT INTO messages (sender_id, group_id, recipient_id, content)
       VALUES
         ((SELECT id FROM users WHERE username='Sophie'), (SELECT id FROM groups WHERE name='Game Groupchat'), NULL, 'I can play Baldur''s Gate 3 tonight if everyone is free.'),
         ((SELECT id FROM users WHERE username='Dan'), (SELECT id FROM groups WHERE name='Game Groupchat'), NULL, 'Sounds good to me!'),
-        ((SELECT id FROM users WHERE username='${CURRENT_USER.username}'), (SELECT id FROM groups WHERE name='Game Groupchat'), NULL, 'I''m ready too!'),
         ((SELECT id FROM users WHERE username='Alice'), (SELECT id FROM groups WHERE name='Study Groupchat'), NULL, 'Hey Kyle, have you finished the assignment?'),
         ((SELECT id FROM users WHERE username='Kyle'), (SELECT id FROM groups WHERE name='Study Groupchat'), NULL, 'Almost! Just debugging the last API call.');
     `);
 
     /* =========================
-       SAMPLE DM MESSAGES
-       Only recipient_id for DMs
+       6️⃣ Dynamic DMs for all non-core users
+       Assign default avatar "/Aqua.png"
+    ========================= */
+    const defaultAvatar = "/Aqua.png";
+    const allUsersRes = await pool.query(`SELECT id, username FROM users`);
+    const allUsers = allUsersRes.rows;
+    const coreUsernames = coreUsers.map(u => u.username);
+
+    for (const u of allUsers) {
+      if (coreUsernames.includes(u.username)) continue;
+
+      // Ensure the user has a default avatar
+      await pool.query(`
+        UPDATE users SET avatar=$1 WHERE id=$2
+      `, [defaultAvatar, u.id]);
+
+      const dmPairs = [
+        ["Alice", `Have you watched the latest Hololive streams?`, `Yes! I loved Gawr Gura's performance!`],
+        ["Kyle", `Did you watch the basketball game last night?`, `Yeah, it was intense!`],
+        ["Sophie", `Any good anime recommendations?`, `Try "Attack on Titan" and "Jujutsu Kaisen"!`],
+        ["Dan", `How's everything going?`, `Pretty busy but good, thanks for asking!`]
+      ];
+
+      for (const [coreUser, userMsg, coreReply] of dmPairs) {
+        await pool.query(`
+          INSERT INTO messages (sender_id, recipient_id, content)
+          VALUES
+            ($1, (SELECT id FROM users WHERE username=$2), $3),
+            ((SELECT id FROM users WHERE username=$2), $1, $4)
+        `, [u.id, coreUser, userMsg, coreReply]);
+      }
+    }
+
+    /* =========================
+       7️⃣ Trigger function for new users
+       Auto-assign demo DMs and default avatar
     ========================= */
     await pool.query(`
-      INSERT INTO messages (sender_id, recipient_id, content)
-      VALUES
-        ((SELECT id FROM users WHERE username='${CURRENT_USER.username}'), (SELECT id FROM users WHERE username='Alice'), 'Have you watched the latest Hololive streams?'),
-        ((SELECT id FROM users WHERE username='Alice'), (SELECT id FROM users WHERE username='${CURRENT_USER.username}'), 'Yes! I loved Gawr Gura''s performance.'),
-        ((SELECT id FROM users WHERE username='${CURRENT_USER.username}'), (SELECT id FROM users WHERE username='Kyle'), 'Did you watch the basketball game last night?'),
-        ((SELECT id FROM users WHERE username='Kyle'), (SELECT id FROM users WHERE username='${CURRENT_USER.username}'), 'Yeah, it was intense!'),
-        ((SELECT id FROM users WHERE username='${CURRENT_USER.username}'), (SELECT id FROM users WHERE username='Sophie'), 'Any good anime recommendations?'),
-        ((SELECT id FROM users WHERE username='Sophie'), (SELECT id FROM users WHERE username='${CURRENT_USER.username}'), 'Try "Attack on Titan" and "Jujutsu Kaisen"!'),
-        ((SELECT id FROM users WHERE username='${CURRENT_USER.username}'), (SELECT id FROM users WHERE username='Dan'), 'How''s everything going?'),
-        ((SELECT id FROM users WHERE username='Dan'), (SELECT id FROM users WHERE username='${CURRENT_USER.username}'), 'Pretty busy but good, thanks for asking!');
+      CREATE OR REPLACE FUNCTION seed_demo_dms()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        IF NEW.username IN ('Alice','Kyle','Sophie','Dan') THEN
+          RETURN NEW;
+        END IF;
+
+        -- Set default avatar
+        UPDATE users SET avatar='/Aqua.png' WHERE id=NEW.id;
+
+        INSERT INTO messages (sender_id, recipient_id, content)
+        VALUES
+          (NEW.id, (SELECT id FROM users WHERE username='Alice'), 'What Hololive streams are you watching?'),
+          ((SELECT id FROM users WHERE username='Alice'), NEW.id, 'I've been watching a lot of Vivi's streams. I love it when she plays with Pekora!.'),
+          (NEW.id, (SELECT id FROM users WHERE username='Kyle'), 'Did you watch the basketball game last night?'),
+          ((SELECT id FROM users WHERE username='Kyle'), NEW.id, 'Yeah, it was intense!'),
+          (NEW.id, (SELECT id FROM users WHERE username='Sophie'), 'Any good anime recommendations?'),
+          ((SELECT id FROM users WHERE username='Sophie'), NEW.id, 'Try "Attack on Titan" and "Jujutsu Kaisen"!'),
+          (NEW.id, (SELECT id FROM users WHERE username='Dan'), 'How''s everything going?'),
+          ((SELECT id FROM users WHERE username='Dan'), NEW.id, 'Pretty busy but good, thanks for asking!');
+
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+
+      CREATE TRIGGER auto_demo_dms
+      AFTER INSERT ON users
+      FOR EACH ROW
+      EXECUTE FUNCTION seed_demo_dms();
     `);
 
     console.log("✅ Seeding complete!");
     process.exit(0);
+
   } catch (err) {
     console.error("❌ Seeding error:", err);
     process.exit(1);

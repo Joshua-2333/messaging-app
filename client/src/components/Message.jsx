@@ -1,11 +1,23 @@
 // client/src/components/Message.jsx
 import React from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Message({ message, isOwn }) {
+  const { user } = useAuth(); // get logged-in user
+
+  // Determine avatar
+  const avatarSrc = isOwn
+    ? (user?.avatar || "/Aqua.png") // own message
+    : (message.avatar || "/Aqua.png"); // other users
+
   return (
     <div className={`message ${isOwn ? "own-message" : ""}`}>
-      {!isOwn && message.avatar && (
-        <img src={message.avatar} alt={message.username} className="avatar" />
+      {avatarSrc && (
+        <img
+          src={avatarSrc}
+          alt={isOwn ? "You" : message.username}
+          className="avatar"
+        />
       )}
       <div className="message-content">
         {!isOwn && <span className="username">{message.username}</span>}

@@ -4,20 +4,14 @@ import API from "../api.js";
 import { useAuth } from "../context/AuthContext";
 import Message from "./Message";
 
-export default function ChatWindow({ messages = [], chat, currentUser }) {
+export default function ChatWindow({ messages = [], setMessages, chat, currentUser }) {
   const { token } = useAuth();
   const [newMessage, setNewMessage] = useState("");
 
-  if (!chat || !currentUser?.id) {
-    return <p>Select a chat to start messaging</p>;
-  }
+  if (!chat || !currentUser?.id) return <p>Select a chat to start messaging</p>;
 
   const chatName =
-    chat.type === "group"
-      ? chat.data.name
-      : chat.type === "dm"
-      ? chat.data.username
-      : "Unknown Chat";
+    chat.type === "group" ? chat.data.name : chat.data.username;
 
   const chatId = chat.data.id;
 
@@ -31,10 +25,12 @@ export default function ChatWindow({ messages = [], chat, currentUser }) {
           ? { group_id: chatId, content: newMessage }
           : { recipient_id: chatId, content: newMessage };
 
-      await API.post("/messages", payload, {
+      const res = await API.post("/messages", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      // Update messages immediately
+      setMessages((prev) => [...prev, res.data]);
       setNewMessage("");
     } catch (err) {
       console.error("Failed to send message:", err);
