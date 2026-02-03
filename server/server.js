@@ -2,6 +2,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js";
 import groupsRoutes from "./routes/groupsRoutes.js";
@@ -12,10 +13,15 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:3000", // frontend origin
+  credentials: true, // allow cookies to be sent
+}));
 
-// Root route
+app.use(express.json());
+app.use(cookieParser());
+
+// Root
 app.get("/", (req, res) => {
   res.send("🟢 Messaging App API is running");
 });

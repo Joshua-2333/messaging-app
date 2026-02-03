@@ -1,38 +1,27 @@
 // server/middleware/authMiddleware.js
 import { verifyToken } from "../utils/jwt.js";
 
-/**
- * Middleware to protect routes using JWT.
- * Expects Authorization header: "Bearer <token>"
- */
 export function authenticate(req, res, next) {
+  let token = null;
+
+  // Check Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) token = authHeader.split(" ")[1];
+
+  // Fallback to cookie
+  if (!token && req.cookies?.token) token = req.cookies.token;
+
+  if (!token) return res.status(401).json({ message: "No token provided" });
+
   try {
-    const authHeader = req.headers.authorization;
-
-    // Check header exists
-    if (!authHeader) {
-      return res.status(401).json({ message: "Authorization header missing" });
-    }
-
-    // Check format
-    if (!authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Invalid authorization format" });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    // Verify token
     const decoded = verifyToken(token);
-    if (!decoded) {
-      return res.status(401).json({ message: "Invalid or expired token" });
-    }
+    if (!decoded) return res.status(401).json({ message: "Invalid or expired token" });
 
-    // Attach user info to request
-    req.user = decoded; // { id, username, iat, exp }
-
+    // Attach user info to req
+    req.user = { id: decoded.id, username: decoded.username };
     next();
   } catch (err) {
-    console.error("Auth middleware error:", err);
-    return res.status(500).json({ message: "Authentication failed" });
+    console.error("JWT verification failed:", err);
+    return res.status(401).json({ message: "Invalid token" });
   }
 }

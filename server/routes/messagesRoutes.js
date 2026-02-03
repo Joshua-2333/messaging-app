@@ -1,14 +1,21 @@
 // server/routes/messagesRoutes.js
 import express from "express";
 import { authenticate } from "../middleware/authMiddleware.js";
-import { getMessagesByGroup, sendMessage } from "../controllers/messagesController.js";
+import {
+  getMessagesByGroup,
+  sendMessage,
+  getDMByUser,
+  sendDM,
+} from "../controllers/messagesController.js";
 
 const router = express.Router();
 
-// Get messages for a group
+/* ------------------ GROUP MESSAGES ------------------ */
 router.get("/:groupId", authenticate, getMessagesByGroup);
-
-// Post a new message
 router.post("/", authenticate, sendMessage);
+
+/* ------------------ DIRECT MESSAGES ------------------ */
+router.get("/dm/:userId", authenticate, getDMByUser);
+router.post("/dm", authenticate, sendDM);
 
 export default router;
