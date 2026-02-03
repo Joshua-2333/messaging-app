@@ -31,11 +31,21 @@ export async function sendMessage(req, res) {
     const result = await pool.query(
       `INSERT INTO messages (sender_id, group_id, content)
        VALUES ($1, $2, $3)
-       RETURNING id, sender_id, group_id, content, created_at`,
+       RETURNING id, content, created_at, sender_id`,
       [senderId, groupId || null, content]
     );
 
-    res.status(201).json(result.rows[0]);
+    // Get sender info
+    const senderInfo = await pool.query(
+      `SELECT username, avatar FROM users WHERE id = $1`,
+      [senderId]
+    );
+
+    res.status(201).json({
+      ...result.rows[0],
+      username: senderInfo.rows[0].username,
+      avatar: senderInfo.rows[0].avatar,
+    });
   } catch (err) {
     console.error("Error sending group message:", err.message);
     res.status(500).json({ message: "Failed to send group message" });
@@ -59,7 +69,7 @@ export async function getDMByUser(req, res) {
       [authUserId, userId]
     );
 
-    res.json(result.rows); // empty array if no messages yet
+    res.json(result.rows);
   } catch (err) {
     console.error("Error fetching DMs:", err.message);
     res.status(500).json({ message: "Failed to fetch direct messages" });
@@ -77,11 +87,21 @@ export async function sendDM(req, res) {
     const result = await pool.query(
       `INSERT INTO messages (sender_id, recipient_id, content)
        VALUES ($1, $2, $3)
-       RETURNING id, sender_id, recipient_id, content, created_at`,
+       RETURNING id, content, created_at, sender_id, recipient_id`,
       [senderId, recipientId, content]
     );
 
-    res.status(201).json(result.rows[0]);
+    // Get sender info
+    const senderInfo = await pool.query(
+      `SELECT username, avatar FROM users WHERE id = $1`,
+      [senderId]
+    );
+
+    res.status(201).json({
+      ...result.rows[0],
+      username: senderInfo.rows[0].username,
+      avatar: senderInfo.rows[0].avatar,
+    });
   } catch (err) {
     console.error("Error sending DM:", err.message);
     res.status(500).json({ message: "Failed to send direct message" });

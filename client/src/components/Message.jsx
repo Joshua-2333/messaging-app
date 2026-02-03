@@ -3,12 +3,9 @@ import React from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Message({ message, isOwn }) {
-  const { user } = useAuth(); // get logged-in user
+  const { user } = useAuth();
 
-  // Determine avatar
-  const avatarSrc = isOwn
-    ? (user?.avatar || "/Aqua.png") // own message
-    : (message.avatar || "/Aqua.png"); // other users
+  const avatarSrc = isOwn ? user?.avatar || "/Aqua.png" : message.avatar || "/Aqua.png";
 
   return (
     <div className={`message ${isOwn ? "own-message" : ""}`}>

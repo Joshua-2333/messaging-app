@@ -1,11 +1,12 @@
 // client/src/components/Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import API from "../api.js";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext.jsx";
 
-import ChatWindow from "./ChatWindow";
-import Logout from "./Logout";
-import ThemeToggle from "./ThemeToggle";
+import ChatWindow from "./ChatWindow.jsx";
+import Logout from "./Logout.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
+import UserList from "./UserList.jsx";
 
 export default function Dashboard() {
   const { user, token } = useAuth();
@@ -13,7 +14,9 @@ export default function Dashboard() {
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
-  const [messages, setMessages] = useState([]);
+
+  // Store messages per chat id to persist them across switches
+  const [messagesByChat, setMessagesByChat] = useState({});
 
   /* ------------------ Fetch groups ------------------ */
   useEffect(() => {
@@ -31,24 +34,65 @@ export default function Dashboard() {
       .catch(console.error);
   }, [token, user]);
 
-  /* ------------------ Fetch messages ------------------ */
+  /* ------------------ Fetch messages for selected chat ------------------ */
   useEffect(() => {
     if (!selectedChat || !token) return;
 
-    const endpoint =
-      selectedChat.type === "group"
-        ? `/messages/${selectedChat.data.id}`
-        : `/messages/dm/${selectedChat.data.id}`;
+    const chatKey = `${selectedChat.type}-${selectedChat.data.id}`;
 
-    API.get(endpoint, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setMessages(res.data))
-      .catch(console.error);
-  }, [selectedChat, token]);
+    // Only fetch if we don't already have messages for this chat
+    if (messagesByChat[chatKey]?.length > 0) return;
 
-  const handleGroupSelect = (group) => setSelectedChat({ type: "group", data: group });
-  const handleUserSelect = (dmUser) => setSelectedChat({ type: "dm", data: dmUser });
+    const fetchMessages = async () => {
+      try {
+        const endpoint =
+          selectedChat.type === "group"
+            ? `/messages/${selectedChat.data.id}`
+            : `/messages/dm/${selectedChat.data.id}`;
+
+        const res = await API.get(endpoint, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setMessagesByChat((prev) => ({
+          ...prev,
+          [chatKey]: res.data,
+        }));
+      } catch (err) {
+        console.error("Failed to fetch messages:", err);
+        setMessagesByChat((prev) => ({
+          ...prev,
+          [chatKey]: [],
+        }));
+      }
+    };
+
+    fetchMessages();
+  }, [selectedChat, token, messagesByChat]);
+
+  /* ------------------ Handle chat selection ------------------ */
+  const handleGroupSelect = (group) =>
+    setSelectedChat({ type: "group", data: group });
+  const handleUserSelect = (dmUser) =>
+    setSelectedChat({ type: "dm", data: dmUser });
+
+  /* ------------------ Send message handler ------------------ */
+  const handleNewMessage = (newMsg) => {
+    if (!selectedChat) return;
+    const chatKey = `${selectedChat.type}-${selectedChat.data.id}`;
+    setMessagesByChat((prev) => ({
+      ...prev,
+      [chatKey]: [...(prev[chatKey] || []), newMsg],
+    }));
+  };
 
   if (!user) return <p className="loading">Loading dashboard…</p>;
+
+  const currentChatKey =
+    selectedChat && `${selectedChat.type}-${selectedChat.data.id}`;
+  const currentMessages = currentChatKey
+    ? messagesByChat[currentChatKey] || []
+    : [];
 
   return (
     <div className="dashboard">
@@ -70,7 +114,8 @@ export default function Dashboard() {
                 <li
                   key={group.id}
                   className={
-                    selectedChat?.type === "group" && selectedChat.data.id === group.id
+                    selectedChat?.type === "group" &&
+                    selectedChat.data.id === group.id
                       ? "selected"
                       : ""
                   }
@@ -88,38 +133,20 @@ export default function Dashboard() {
           </div>
 
           {/* USERS */}
-          <div className="user-list-container">
-            <h4>Users</h4>
-            <ul>
-              {users.map((u) => (
-                <li
-                  key={u.id}
-                  className={
-                    selectedChat?.type === "dm" && selectedChat.data.id === u.id
-                      ? "selected"
-                      : ""
-                  }
-                  onClick={() => handleUserSelect(u)}
-                >
-                  <img
-                    className="user-avatar"
-                    src={u.avatar || "/vivi-icon.png"}
-                    alt={u.username}
-                  />
-                  {u.username}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <UserList
+            users={users}
+            selectedChat={selectedChat}
+            onSelect={handleUserSelect}
+          />
         </aside>
 
         <main className="chat-window">
           {selectedChat ? (
             <ChatWindow
-              messages={messages}
-              setMessages={setMessages}
               chat={selectedChat}
               currentUser={user}
+              messages={currentMessages}
+              setMessages={handleNewMessage} // persist per chat
             />
           ) : (
             <p>Select a group or user to start chatting</p>

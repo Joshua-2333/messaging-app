@@ -167,8 +167,8 @@ async function seed() {
 
         INSERT INTO messages (sender_id, recipient_id, content)
         VALUES
-          (NEW.id, (SELECT id FROM users WHERE username='Alice'), 'What Hololive streams are you watching?'),
-          ((SELECT id FROM users WHERE username='Alice'), NEW.id, 'I've been watching a lot of Vivi's streams. I love it when she plays with Pekora!.'),
+          (NEW.id, (SELECT id FROM users WHERE username='Alice'), 'Have you watched the latest Hololive streams?'),
+          ((SELECT id FROM users WHERE username='Alice'), NEW.id, 'Yes! I loved Gawr Gura''s performance.'),
           (NEW.id, (SELECT id FROM users WHERE username='Kyle'), 'Did you watch the basketball game last night?'),
           ((SELECT id FROM users WHERE username='Kyle'), NEW.id, 'Yeah, it was intense!'),
           (NEW.id, (SELECT id FROM users WHERE username='Sophie'), 'Any good anime recommendations?'),

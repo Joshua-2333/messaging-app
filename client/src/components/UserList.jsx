@@ -1,62 +1,38 @@
 // client/src/components/UserList.jsx
 import React from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 
-export default function UserList({
-  users = [],
-  currentUser,
-  onSelect,
-  selectedChat,
-}) {
-  // Hard guard: do NOT render until we have a real user
-  if (!currentUser || !currentUser.id || !currentUser.username) {
-    return null;
-  }
+export default function UserList({ users = [], selectedChat, onSelect }) {
+  const { user } = useAuth();
+  if (!user || !user.id) return null;
+
+  // Only keep core users (Alice, Kyle, Sophie, Dan)
+  const coreUsernames = ["Alice", "Kyle", "Sophie", "Dan"];
+  const visibleUsers = users
+    .filter(u => coreUsernames.includes(u.username) && u.id !== user.id);
 
   return (
     <div className="user-list-container">
       <h4>Users</h4>
       <ul>
-        {/* Current logged-in user */}
-        <li className="current-user">
-          {currentUser.avatar && (
+        {visibleUsers.map(u => (
+          <li
+            key={u.id}
+            className={
+              selectedChat?.type === "dm" && selectedChat.data?.id === u.id
+                ? "selected"
+                : ""
+            }
+            onClick={() => onSelect(u)}
+          >
             <img
-              src={currentUser.avatar}
-              alt={currentUser.username}
               className="user-avatar"
+              src={u.avatar || "/Aqua.png"}
+              alt={u.username}
             />
-          )}
-          <span>{currentUser.username}</span>
-        </li>
-
-        {/* Other users */}
-        {users
-          .filter(
-            (u) =>
-              u.id &&
-              u.username &&
-              u.id !== currentUser.id
-          )
-          .map((u) => (
-            <li
-              key={u.id}
-              className={
-                selectedChat?.type === "dm" &&
-                selectedChat.data?.id === u.id
-                  ? "selected"
-                  : ""
-              }
-              onClick={() => onSelect(u)}
-            >
-              {u.avatar && (
-                <img
-                  src={u.avatar}
-                  alt={u.username}
-                  className="user-avatar"
-                />
-              )}
-              <span>{u.username}</span>
-            </li>
-          ))}
+            {u.username}
+          </li>
+        ))}
       </ul>
     </div>
   );

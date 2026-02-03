@@ -1,19 +1,20 @@
 // client/src/components/ChatWindow.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import API from "../api.js";
-import { useAuth } from "../context/AuthContext";
-import Message from "./Message";
+import { useAuth } from "../context/AuthContext.jsx";
+import Message from "./Message.jsx";
 
-export default function ChatWindow({ messages = [], setMessages, chat, currentUser }) {
+export default function ChatWindow({ chat, currentUser, messages, setMessages }) {
   const { token } = useAuth();
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef(null);
 
-  if (!chat || !currentUser?.id) return <p>Select a chat to start messaging</p>;
-
-  const chatName =
-    chat.type === "group" ? chat.data.name : chat.data.username;
-
-  const chatId = chat.data.id;
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -22,20 +23,25 @@ export default function ChatWindow({ messages = [], setMessages, chat, currentUs
     try {
       const payload =
         chat.type === "group"
-          ? { group_id: chatId, content: newMessage }
-          : { recipient_id: chatId, content: newMessage };
+          ? { group_id: chat.data.id, content: newMessage }
+          : { recipient_id: chat.data.id, content: newMessage };
 
       const res = await API.post("/messages", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Update messages immediately
-      setMessages((prev) => [...prev, res.data]);
+      // Persist message per chat
+      setMessages(res.data);
+
       setNewMessage("");
     } catch (err) {
       console.error("Failed to send message:", err);
     }
   };
+
+  if (!chat || !currentUser?.id) return <p>Select a chat to start messaging</p>;
+
+  const chatName = chat.type === "group" ? chat.data.name : chat.data.username;
 
   return (
     <div className="chat-window-container">
@@ -45,10 +51,10 @@ export default function ChatWindow({ messages = [], setMessages, chat, currentUs
         {messages.map((msg) => {
           const sender =
             msg.sender_id === currentUser.id
-              ? currentUser
+              ? { username: currentUser.username, avatar: currentUser.avatar || "/Aqua.png" }
               : chat.type === "dm"
-              ? chat.data
-              : { username: msg.username, avatar: msg.avatar };
+              ? { username: chat.data.username, avatar: chat.data.avatar || "/Aqua.png" }
+              : { username: msg.username || "Unknown", avatar: msg.avatar || "/Aqua.png" };
 
           return (
             <Message
@@ -58,6 +64,7 @@ export default function ChatWindow({ messages = [], setMessages, chat, currentUs
             />
           );
         })}
+        <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={handleSend} className="chat-input-form">
