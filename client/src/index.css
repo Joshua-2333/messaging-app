@@ -1,0 +1,534 @@
+/* ===== Global Styles ===== */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+  font-size: 0.95rem;
+}
+
+/* ===== Theme Variables ===== */
+:root {
+  --bg-color: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-color: #111111;
+  --input-bg: #ffffff;
+  --input-border: #cccccc;
+  --primary-color: #1d4ed8;
+  --error-color: #dc2626;
+  --success-color: #16a34a;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --transition: 0.3s ease-in-out;
+  --focus-outline: 3px solid #2563eb;
+}
+
+body.dark {
+  --bg-color: #121212;
+  --card-bg: #1f1f1f;
+  --text-color: #e3e3e3;
+  --input-bg: #1f1f1f;
+  --input-border: #333333;
+  --primary-color: #2563eb;
+  --error-color: #f87171;
+  --success-color: #4ade80;
+  --shadow: rgba(0, 0, 0, 0.6);
+  --focus-outline: 3px solid #60a5fa;
+}
+
+/* ===== Utility Classes ===== */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.bold { font-weight: 600; }
+.flex { display: flex; gap: 1rem; flex-wrap: wrap; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.flex-column { display: flex; flex-direction: column; gap: 1rem; }
+.overflow-auto { overflow: auto; }
+.rounded { border-radius: 0.75rem; }
+.shadow { box-shadow: 0 4px 12px var(--shadow); }
+
+/* ===== App Container ===== */
+.app {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--bg-color);
+  transition: background-color var(--transition);
+}
+
+/* ===== Card Styles ===== */
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px var(--shadow);
+  max-width: 480px;
+  min-width: 300px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition), color var(--transition);
+  aspect-ratio: 1 / 1;
+}
+
+.card h1 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.card p {
+  margin-top: 0.5rem;
+}
+
+/* ===== Shake Animation for Login Errors ===== */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+  100% { transform: translateX(0); }
+}
+
+.card.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* ===== Forms ===== */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+/* ===== Input Wrapper ===== */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* ===== Text Inputs ===== */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: border-color var(--transition), background-color var(--transition), color var(--transition);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 2.6rem;
+}
+
+/* ===== Focus ===== */
+input:focus {
+  outline: var(--focus-outline);
+}
+
+/* ===== Password Wrapper ===== */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input {
+  min-height: 2.6rem;
+  flex: 1;
+}
+
+.password-wrapper .eye-button {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
+.password-wrapper .eye-button:focus {
+  outline: var(--focus-outline);
+  border-radius: 0.25rem;
+}
+
+/* ===== Buttons ===== */
+button[type="submit"] {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition), transform var(--transition);
+}
+
+button[type="submit"]:hover {
+  background-color: #1e40af;
+  transform: translateY(-1px);
+}
+
+/* ===== Remember Me Checkbox ===== */
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+/* ===== Helper Text ===== */
+.helper-text {
+  font-size: 0.95rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.success { color: var(--success-color); }
+.error { color: var(--error-color); font-size: 0.875rem; }
+
+/* ===== Theme Toggle ===== */
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0.25rem;
+  color: var(--text-color);
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus {
+  color: var(--primary-color);
+}
+
+/* ===== Logout Button ===== */
+.logout-btn {
+  background-color: var(--error-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color var(--transition);
+}
+
+.logout-btn:hover,
+.logout-btn:focus {
+  background-color: #b91c1c;
+}
+
+/* ===== Toast Notifications ===== */
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 9999;
+}
+
+.toast {
+  min-width: 220px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 4px 12px var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: toast-in 0.25s ease-out;
+}
+
+.toast-info { background-color: #3b82f6; }
+.toast-success { background-color: #16a34a; }
+.toast-error { background-color: #dc2626; }
+
+.toast-close {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Responsive Card Layout ===== */
+@media (max-width: 1024px) {
+  .card { 
+    max-width: 420px;
+    min-width: 280px;
+    aspect-ratio: auto;
+    padding: 2rem; 
+  }
+  input { font-size: 1rem; }
+  button { font-size: 1rem; }
+}
+
+@media (max-width: 768px) {
+  .card { padding: 1.75rem; }
+  input { font-size: 0.975rem; }
+  button { font-size: 0.975rem; }
+  .password-wrapper .eye-button { font-size: 1.1rem; }
+}
+
+@media (max-width: 480px) {
+  .card { padding: 1.5rem; max-width: 95%; }
+  input { font-size: 0.95rem; }
+  button { padding: 0.5rem 0.75rem; font-size: 0.9rem; }
+  .password-wrapper .eye-button { font-size: 1rem; }
+}
+
+/* ===== Dashboard / Chat Styles ===== */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--card-bg);
+  box-shadow: 0 2px 6px var(--shadow);
+  flex-wrap: wrap;
+}
+
+.dashboard-body {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  overflow: hidden;
+}
+
+/* ===== Sidebar: Groups + Users Combined ===== */
+.sidebar {
+  flex: 0 0 260px;
+  background-color: var(--card-bg);
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: calc(100vh - 120px);
+  box-shadow: 0 2px 6px var(--shadow);
+}
+
+.sidebar h3 {
+  margin: 0.5rem 1rem;
+  font-size: 1.1rem;
+}
+
+.group-list-container,
+.user-list-container {
+  overflow-y: auto;
+  padding: 0.5rem 1rem;
+}
+
+.group-list-container {
+  flex: 1 1 auto;
+}
+
+.user-list-container {
+  flex: 1 1 auto;
+  border-top: 1px solid var(--input-border);
+  margin-top: 0.5rem;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color var(--transition);
+}
+
+.sidebar li.selected {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.sidebar li:hover,
+.sidebar li:focus {
+  background-color: rgba(29, 78, 216, 0.1);
+  outline: none;
+}
+
+.group-avatar,
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* ===== Chat Window ===== */
+.chat-window {
+  flex: 1;
+  background-color: var(--card-bg);
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.messages-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.message {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.own-message {
+  justify-content: flex-end;
+}
+
+.message-content {
+  background-color: rgba(29, 78, 216, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  max-width: 70%;
+}
+
+.own-message .message-content {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.message-content .username {
+  font-weight: 600;
+  display: block;
+}
+
+.message-content small {
+  display: block;
+  font-size: 0.75rem;
+  color: #555;
+  margin-top: 0.25rem;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input-form input {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input-border);
+}
+
+.chat-input-form button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+/* ===== Responsive Dashboard ===== */
+@media (max-width: 1024px) {
+  .sidebar { flex: 0 0 200px; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-body { flex-direction: column; padding: 1rem; }
+  .sidebar { flex: 1 1 100%; height: auto; }
+  .chat-window { flex: 1 1 100%; height: 400px; }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header { flex-direction: column; gap: 0.5rem; text-align: center; }
+  .chat-window { height: 300px; }
+}
+
+/* Message row layout (keep compact, no stretching) */
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* Avatar next to username (Discord size) */
+.message .avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Tighten message bubble spacing */
+.message-content {
+  padding: 0.4rem 0.6rem;
+}
+
+/* Username compact like Discord */
+.message-content .username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Message text spacing */
+.message-content p {
+  margin: 0.15rem 0 0;
+  line-height: 1.35;
+}
