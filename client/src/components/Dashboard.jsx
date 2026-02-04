@@ -18,7 +18,7 @@ export default function Dashboard() {
   // Store messages per chat id to persist them across switches
   const [messagesByChat, setMessagesByChat] = useState({});
 
-  /* ------------------ Fetch groups ------------------ */
+  /*Fetch groups*/
   useEffect(() => {
     if (!token) return;
     API.get("/groups", { headers: { Authorization: `Bearer ${token}` } })
@@ -26,7 +26,7 @@ export default function Dashboard() {
       .catch(console.error);
   }, [token]);
 
-  /* ------------------ Fetch users ------------------ */
+  /*Fetch users*/
   useEffect(() => {
     if (!token || !user) return;
     API.get("/users", { headers: { Authorization: `Bearer ${token}` } })
@@ -34,7 +34,7 @@ export default function Dashboard() {
       .catch(console.error);
   }, [token, user]);
 
-  /* ------------------ Fetch messages for selected chat ------------------ */
+  /*Fetch messages for selected chat*/
   useEffect(() => {
     if (!selectedChat || !token) return;
 
@@ -70,13 +70,13 @@ export default function Dashboard() {
     fetchMessages();
   }, [selectedChat, token, messagesByChat]);
 
-  /* ------------------ Handle chat selection ------------------ */
+  /*Handle chat selection*/
   const handleGroupSelect = (group) =>
     setSelectedChat({ type: "group", data: group });
   const handleUserSelect = (dmUser) =>
     setSelectedChat({ type: "dm", data: dmUser });
 
-  /* ------------------ Send message handler ------------------ */
+  /*Send message handler*/
   const handleNewMessage = (newMsg) => {
     if (!selectedChat) return;
     const chatKey = `${selectedChat.type}-${selectedChat.data.id}`;

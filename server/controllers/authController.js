@@ -3,7 +3,7 @@ import pool from "../db/pool.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt.js";
 
-/* ------------------ REGISTER ------------------ */
+/*REGISTER*/
 export async function register(req, res) {
   const { username, email, password, avatar } = req.body;
 
@@ -29,7 +29,7 @@ export async function register(req, res) {
   }
 }
 
-/* ------------------ LOGIN ------------------ */
+/*LOGIN*/
 export async function login(req, res) {
   const { usernameOrEmail, password } = req.body;
 
@@ -76,7 +76,7 @@ export async function login(req, res) {
   }
 }
 
-/* ------------------ LOGOUT ------------------ */
+/*LOGOUT*/
 export async function logout(req, res) {
   try {
     const userId = req.user.id;

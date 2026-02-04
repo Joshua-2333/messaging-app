@@ -1,7 +1,7 @@
 // server/controllers/messagesController.js
 import pool from "../db/pool.js";
 
-/* ------------------ GROUP MESSAGES ------------------ */
+/*GROUP MESSAGES*/
 export async function getMessagesByGroup(req, res) {
   const { groupId } = req.params;
   try {
@@ -52,7 +52,7 @@ export async function sendMessage(req, res) {
   }
 }
 
-/* ------------------ DIRECT MESSAGES ------------------ */
+/*DIRECT MESSAGES*/
 export async function getDMByUser(req, res) {
   const { userId } = req.params;
   const authUserId = req.user.id;

@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // 🔄 REFRESH user whenever token changes
+  // REFRESH user whenever token changes
   useEffect(() => {
     if (!token) {
       setUser(null);

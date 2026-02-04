@@ -1,7 +1,7 @@
 // server/controllers/usersController.js
 import pool from "../db/pool.js";
 
-/* ------------------ GET ALL USERS ------------------ */
+/*GET ALL USERS*/
 export async function getAllUsers(req, res) {
   try {
     const result = await pool.query(
@@ -14,7 +14,7 @@ export async function getAllUsers(req, res) {
   }
 }
 
-/* ------------------ GET USER BY ID ------------------ */
+/*GET USER BY ID*/
 export async function getUserById(req, res) {
   const { id } = req.params;
   try {

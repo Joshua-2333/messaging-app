@@ -6,20 +6,14 @@ import pool from "../db/pool.js";
 
 const router = express.Router();
 
-/* =========================
-   REGISTER
-========================= */
+/*REGISTER*/
 router.post("/register", register);
 
-/* =========================
-   LOGIN
-========================= */
+/*LOGIN*/
 router.post("/login", login);
 
-/* =========================
-   GET CURRENT USER
-   Protected route: returns logged-in user
-========================= */
+/*GET CURRENT USER
+   Protected route: returns logged-in user*/
 router.get("/me", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;

@@ -6,17 +6,13 @@ async function seed() {
   try {
     console.log("Seeding DB...");
 
-    /* =========================
-       0️⃣ Drop all tables
-    ========================= */
+    /*Drop all tables*/
     await pool.query(`DROP TABLE IF EXISTS messages;`);
     await pool.query(`DROP TABLE IF EXISTS group_users;`);
     await pool.query(`DROP TABLE IF EXISTS groups;`);
     await pool.query(`DROP TABLE IF EXISTS users;`);
 
-    /* =========================
-       1️⃣ Create tables
-    ========================= */
+    /*Create tables*/
     await pool.query(`
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
@@ -59,9 +55,7 @@ async function seed() {
       );
     `);
 
-    /* =========================
-       2️⃣ Seed core users
-    ========================= */
+    /*Seed core users*/
     const coreUsers = [
       { username: "Alice", email: "alice@example.com", password: "password123", avatar: "/vivi-icon.png" },
       { username: "Kyle", email: "kyle@example.com", password: "password123", avatar: "/Majora.jpg" },
@@ -77,9 +71,7 @@ async function seed() {
       );
     }
 
-    /* =========================
-       3️⃣ Seed groups
-    ========================= */
+    /*Seed groups*/
     await pool.query(`
       INSERT INTO groups (name, is_private, avatar)
       VALUES
@@ -87,9 +79,7 @@ async function seed() {
         ('Study Groupchat', FALSE, '/study.png');
     `);
 
-    /* =========================
-       4️⃣ Add core users to groups
-    ========================= */
+    /*Add core users to groups*/
     const groupMembers = [
       { group: "Game Groupchat", users: ["Sophie", "Dan"] },
       { group: "Study Groupchat", users: ["Alice", "Kyle"] }
@@ -104,9 +94,7 @@ async function seed() {
       }
     }
 
-    /* =========================
-       5️⃣ Seed group messages
-    ========================= */
+    /*Seed group messages*/
     await pool.query(`
       INSERT INTO messages (sender_id, group_id, recipient_id, content)
       VALUES
@@ -116,10 +104,8 @@ async function seed() {
         ((SELECT id FROM users WHERE username='Kyle'), (SELECT id FROM groups WHERE name='Study Groupchat'), NULL, 'Almost! Just debugging the last API call.');
     `);
 
-    /* =========================
-       6️⃣ Seed DMs for all other users (Odyssey, etc.)
-       Correct timestamp: question first, reply second
-    ========================= */
+    /*Seed DMs for all other users 
+       Correct timestamp: question first, reply second*/
     const defaultAvatar = "/Aqua.png";
     const allUsersRes = await pool.query(`SELECT id, username FROM users`);
     const allUsers = allUsersRes.rows;
@@ -148,9 +134,7 @@ async function seed() {
       }
     }
 
-    /* =========================
-       7️⃣ Trigger function for new users
-    ========================= */
+    /*Trigger function for new users*/
     await pool.query(`
       CREATE OR REPLACE FUNCTION seed_demo_dms()
       RETURNS TRIGGER AS $$

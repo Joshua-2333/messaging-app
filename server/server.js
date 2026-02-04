@@ -46,9 +46,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server error" });
 });
 
-// =============================
-// Demo: Set Alice & Dan online
-// =============================
+//Demo: Set Alice & Dan online
 async function setDemoUsersOnline() {
   try {
     await pool.query(

@@ -10,11 +10,11 @@ import {
 
 const router = express.Router();
 
-/* ------------------ GROUP MESSAGES ------------------ */
+/*GROUP MESSAGES*/
 router.get("/:groupId", authenticate, getMessagesByGroup);
 router.post("/", authenticate, sendMessage);
 
-/* ------------------ DIRECT MESSAGES ------------------ */
+/*DIRECT MESSAGES*/
 router.get("/dm/:userId", authenticate, getDMByUser);
 router.post("/dm", authenticate, sendDM);
 
