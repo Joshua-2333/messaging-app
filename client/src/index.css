@@ -430,12 +430,16 @@ button[type="submit"]:hover {
   margin-bottom: 1rem;
 }
 
+/* ===== Updated message alignment for DMs ===== */
 .message {
   display: flex;
+  align-items: flex-start;
   gap: 0.5rem;
+  max-width: 100%;
 }
 
 .own-message {
+  flex-direction: row-reverse;
   justify-content: flex-end;
 }
 
@@ -444,6 +448,7 @@ button[type="submit"]:hover {
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
   max-width: 70%;
+  word-break: break-word;
 }
 
 .own-message .message-content {
@@ -454,6 +459,8 @@ button[type="submit"]:hover {
 .message-content .username {
   font-weight: 600;
   display: block;
+  font-size: 0.85rem;
+  line-height: 1.2;
 }
 
 .message-content small {
@@ -496,14 +503,7 @@ button[type="submit"]:hover {
   .chat-window { height: 300px; }
 }
 
-/* Message row layout (keep compact, no stretching) */
-.message {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-/* Avatar next to username (Discord size) */
+/* Avatar next to message */
 .message .avatar {
   width: 32px;
   height: 32px;
@@ -515,20 +515,24 @@ button[type="submit"]:hover {
   margin-top: 2px;
 }
 
-/* Tighten message bubble spacing */
-.message-content {
-  padding: 0.4rem 0.6rem;
+.chat-image {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  object-fit: cover;
 }
 
-/* Username compact like Discord */
-.message-content .username {
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.2;
+.online-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  border: 2px solid white;
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
-
-/* Message text spacing */
-.message-content p {
-  margin: 0.15rem 0 0;
-  line-height: 1.35;
+.user-avatar-container {
+  position: relative;
 }

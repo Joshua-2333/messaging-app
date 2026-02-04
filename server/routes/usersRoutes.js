@@ -5,10 +5,7 @@ import { authenticate } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Get all users (except current)
 router.get("/", authenticate, getAllUsers);
-
-// Get a single user by ID
 router.get("/:id", authenticate, getUserById);
 
 export default router;

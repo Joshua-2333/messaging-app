@@ -6,10 +6,11 @@ export default function UserList({ users = [], selectedChat, onSelect }) {
   const { user } = useAuth();
   if (!user || !user.id) return null;
 
-  // Only keep core users (Alice, Kyle, Sophie, Dan)
+  // Only core users
   const coreUsernames = ["Alice", "Kyle", "Sophie", "Dan"];
-  const visibleUsers = users
-    .filter(u => coreUsernames.includes(u.username) && u.id !== user.id);
+  const visibleUsers = users.filter(
+    u => coreUsernames.includes(u.username) && u.id !== user.id
+  );
 
   return (
     <div className="user-list-container">
@@ -25,11 +26,29 @@ export default function UserList({ users = [], selectedChat, onSelect }) {
             }
             onClick={() => onSelect(u)}
           >
-            <img
-              className="user-avatar"
-              src={u.avatar || "/Aqua.png"}
-              alt={u.username}
-            />
+            <div style={{ position: "relative" }}>
+              <img
+                className="user-avatar"
+                src={u.avatar || "/Aqua.png"}
+                alt={u.username}
+              />
+              {u.is_online && (
+                <span
+                  className="online-dot"
+                  title="Online"
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: 0,
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "50%",
+                    backgroundColor: "#4caf50",
+                    border: "2px solid white",
+                  }}
+                />
+              )}
+            </div>
             {u.username}
           </li>
         ))}

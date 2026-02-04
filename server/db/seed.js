@@ -60,7 +60,7 @@ async function seed() {
     `);
 
     /* =========================
-       2️⃣ Seed scripted users
+       2️⃣ Seed core users
     ========================= */
     const coreUsers = [
       { username: "Alice", email: "alice@example.com", password: "password123", avatar: "/vivi-icon.png" },
@@ -88,7 +88,7 @@ async function seed() {
     `);
 
     /* =========================
-       4️⃣ Add scripted users to groups
+       4️⃣ Add core users to groups
     ========================= */
     const groupMembers = [
       { group: "Game Groupchat", users: ["Sophie", "Dan"] },
@@ -105,7 +105,7 @@ async function seed() {
     }
 
     /* =========================
-       5️⃣ Sample group messages
+       5️⃣ Seed group messages
     ========================= */
     await pool.query(`
       INSERT INTO messages (sender_id, group_id, recipient_id, content)
@@ -117,8 +117,8 @@ async function seed() {
     `);
 
     /* =========================
-       6️⃣ Dynamic DMs for all non-core users
-       Assign default avatar "/Aqua.png"
+       6️⃣ Seed DMs for all other users (Odyssey, etc.)
+       Correct timestamp: question first, reply second
     ========================= */
     const defaultAvatar = "/Aqua.png";
     const allUsersRes = await pool.query(`SELECT id, username FROM users`);
@@ -128,10 +128,8 @@ async function seed() {
     for (const u of allUsers) {
       if (coreUsernames.includes(u.username)) continue;
 
-      // Ensure the user has a default avatar
-      await pool.query(`
-        UPDATE users SET avatar=$1 WHERE id=$2
-      `, [defaultAvatar, u.id]);
+      // Default avatar
+      await pool.query(`UPDATE users SET avatar=$1 WHERE id=$2`, [defaultAvatar, u.id]);
 
       const dmPairs = [
         ["Alice", `Have you watched the latest Hololive streams?`, `Yes! I loved Gawr Gura's performance!`],
@@ -142,17 +140,16 @@ async function seed() {
 
       for (const [coreUser, userMsg, coreReply] of dmPairs) {
         await pool.query(`
-          INSERT INTO messages (sender_id, recipient_id, content)
+          INSERT INTO messages (sender_id, recipient_id, content, created_at)
           VALUES
-            ($1, (SELECT id FROM users WHERE username=$2), $3),
-            ((SELECT id FROM users WHERE username=$2), $1, $4)
+            ($1, (SELECT id FROM users WHERE username=$2), $3, NOW() - INTERVAL '1 second'),
+            ((SELECT id FROM users WHERE username=$2), $1, $4, NOW())
         `, [u.id, coreUser, userMsg, coreReply]);
       }
     }
 
     /* =========================
        7️⃣ Trigger function for new users
-       Auto-assign demo DMs and default avatar
     ========================= */
     await pool.query(`
       CREATE OR REPLACE FUNCTION seed_demo_dms()
@@ -162,19 +159,18 @@ async function seed() {
           RETURN NEW;
         END IF;
 
-        -- Set default avatar
         UPDATE users SET avatar='/Aqua.png' WHERE id=NEW.id;
 
-        INSERT INTO messages (sender_id, recipient_id, content)
+        INSERT INTO messages (sender_id, recipient_id, content, created_at)
         VALUES
-          (NEW.id, (SELECT id FROM users WHERE username='Alice'), 'Have you watched the latest Hololive streams?'),
-          ((SELECT id FROM users WHERE username='Alice'), NEW.id, 'Yes! I loved Gawr Gura''s performance.'),
-          (NEW.id, (SELECT id FROM users WHERE username='Kyle'), 'Did you watch the basketball game last night?'),
-          ((SELECT id FROM users WHERE username='Kyle'), NEW.id, 'Yeah, it was intense!'),
-          (NEW.id, (SELECT id FROM users WHERE username='Sophie'), 'Any good anime recommendations?'),
-          ((SELECT id FROM users WHERE username='Sophie'), NEW.id, 'Try "Attack on Titan" and "Jujutsu Kaisen"!'),
-          (NEW.id, (SELECT id FROM users WHERE username='Dan'), 'How''s everything going?'),
-          ((SELECT id FROM users WHERE username='Dan'), NEW.id, 'Pretty busy but good, thanks for asking!');
+          (NEW.id, (SELECT id FROM users WHERE username='Alice'), 'Have you watched the latest Hololive streams?', NOW() - INTERVAL '1 second'),
+          ((SELECT id FROM users WHERE username='Alice'), NEW.id, 'Yes! I loved Gawr Gura''s performance!', NOW()),
+          (NEW.id, (SELECT id FROM users WHERE username='Kyle'), 'Did you watch the basketball game last night?', NOW() - INTERVAL '1 second'),
+          ((SELECT id FROM users WHERE username='Kyle'), NEW.id, 'Yeah, it was intense!', NOW()),
+          (NEW.id, (SELECT id FROM users WHERE username='Sophie'), 'Any good anime recommendations?', NOW() - INTERVAL '1 second'),
+          ((SELECT id FROM users WHERE username='Sophie'), NEW.id, 'Try "Attack on Titan" and "Jujutsu Kaisen"!', NOW()),
+          (NEW.id, (SELECT id FROM users WHERE username='Dan'), 'How''s everything going?', NOW() - INTERVAL '1 second'),
+          ((SELECT id FROM users WHERE username='Dan'), NEW.id, 'Pretty busy but good, thanks for asking!', NOW());
 
         RETURN NEW;
       END;

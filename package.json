@@ -16,6 +16,7 @@
     "express": "^5.2.1",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
     "pg": "^8.18.0"
   },
   "devDependencies": {

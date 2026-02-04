@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import pool from "./db/pool.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import groupsRoutes from "./routes/groupsRoutes.js";
@@ -13,10 +14,12 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000", // frontend origin
-  credentials: true, // allow cookies to be sent
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3000", // frontend origin
+    credentials: true, // allow cookies to be sent
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -43,6 +46,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server error" });
 });
 
+// =============================
+// Demo: Set Alice & Dan online
+// =============================
+async function setDemoUsersOnline() {
+  try {
+    await pool.query(
+      `UPDATE users
+       SET is_online = TRUE
+       WHERE username IN ('Alice', 'Dan')`
+    );
+    console.log("✅ Demo users Alice & Dan set online");
+  } catch (err) {
+    console.error("Failed to set demo users online:", err);
+  }
+}
+
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  await setDemoUsersOnline();
+});
