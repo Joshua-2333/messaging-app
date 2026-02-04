@@ -10,6 +10,12 @@ import groupsRoutes from "./routes/groupsRoutes.js";
 import messagesRoutes from "./routes/messagesRoutes.js";
 import usersRoutes from "./routes/usersRoutes.js";
 
+// Fix __dirname in ESM
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
 const app = express();
 
@@ -46,7 +52,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server error" });
 });
 
-//Demo: Set Alice & Dan online
+// Demo: Set Alice & Dan online
 async function setDemoUsersOnline() {
   try {
     await pool.query(
