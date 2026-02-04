@@ -21,11 +21,12 @@ API.interceptors.request.use(
   (err) => Promise.reject(err)
 );
 
-// Handle 401 globally
+// Handle 401 globally (unauthorized)
 API.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
+      // Remove stale auth info and redirect to login
       Cookies.remove("token");
       Cookies.remove("user");
       window.location.href = "/login";
