@@ -4,6 +4,9 @@ A real-time messaging application built with **React** (frontend) and **Node.js/
 
 ---
 
+## Demo
+https://messaging-app-frontend-k9y4.onrender.com
+
 ## Features
 
 - User authentication (register, login, logout)
@@ -25,7 +28,6 @@ A real-time messaging application built with **React** (frontend) and **Node.js/
 - **Dev Tools:** Nodemon, dotenv, CORS, cookie-parser
 
 ---
-
 ## Getting Started (Local Development)
 
 ### Prerequisites
