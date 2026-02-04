@@ -19,51 +19,70 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 const app = express();
 
-// Middleware
+/*CORS CONFIG (FIXED)*/
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://messaging-app-frontend-k9y4.onrender.com",
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000", // frontend origin
-    credentials: true, // allow cookies to be sent
+    origin: (origin, callback) => {
+      // allow server-to-server requests (Postman, Render health checks)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.error("❌ CORS blocked origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
   })
 );
 
 app.use(express.json());
 app.use(cookieParser());
 
-// Root
+/*Root*/
 app.get("/", (req, res) => {
   res.send("🟢 Messaging App API is running");
 });
 
-// API Routes
+/*API Routes*/
 app.use("/api/auth", authRoutes);
 app.use("/api/groups", groupsRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/users", usersRoutes);
 
-// 404 handler
+/*404 Handler*/
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Global error handler
+/*Global Error Handler*/
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Server error" });
+  console.error("🔥 Server error:", err.message);
+  res.status(500).json({ message: err.message || "Server error" });
 });
 
-// Demo: Set Alice & Dan online
+/*Demo: Set Alice & Dan online*/
 async function setDemoUsersOnline() {
   try {
-    const res = await pool.query(
-      `UPDATE users
-       SET is_online = TRUE
-       WHERE username IN ('Alice', 'Dan')
-       RETURNING username`
-    );
+    const result = await pool.query(`
+      UPDATE users
+      SET is_online = TRUE
+      WHERE username IN ('Alice', 'Dan')
+      RETURNING username
+    `);
 
-    if (res.rowCount > 0) {
-      console.log(`✅ Demo users set online: ${res.rows.map(r => r.username).join(", ")}`);
+    if (result.rowCount > 0) {
+      console.log(
+        `✅ Demo users set online: ${result.rows
+          .map(r => r.username)
+          .join(", ")}`
+      );
     } else {
       console.log("ℹ️ No demo users found to set online");
     }
@@ -72,20 +91,20 @@ async function setDemoUsersOnline() {
   }
 }
 
-// Start server after DB connection
+/* Start Server (DB-safe)*/
 async function startServer() {
   try {
-    await pool.query("SELECT 1"); // Test DB connection
+    await pool.query("SELECT 1");
     console.log("✅ Database connection successful");
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, async () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
       await setDemoUsersOnline();
     });
   } catch (err) {
     console.error("❌ Failed to connect to the database:", err);
-    process.exit(1); // Stop server if DB is unreachable
+    process.exit(1);
   }
 }
 
