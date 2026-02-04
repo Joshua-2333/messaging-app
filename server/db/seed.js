@@ -20,6 +20,7 @@ async function seed() {
         email VARCHAR(100) UNIQUE NOT NULL,
         password TEXT NOT NULL,
         avatar TEXT,
+        is_online BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
