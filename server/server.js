@@ -55,20 +55,38 @@ app.use((err, req, res, next) => {
 // Demo: Set Alice & Dan online
 async function setDemoUsersOnline() {
   try {
-    await pool.query(
+    const res = await pool.query(
       `UPDATE users
        SET is_online = TRUE
-       WHERE username IN ('Alice', 'Dan')`
+       WHERE username IN ('Alice', 'Dan')
+       RETURNING username`
     );
-    console.log("✅ Demo users Alice & Dan set online");
+
+    if (res.rowCount > 0) {
+      console.log(`✅ Demo users set online: ${res.rows.map(r => r.username).join(", ")}`);
+    } else {
+      console.log("ℹ️ No demo users found to set online");
+    }
   } catch (err) {
     console.error("Failed to set demo users online:", err);
   }
 }
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, async () => {
-  console.log(`Server running on port ${PORT}`);
-  await setDemoUsersOnline();
-});
+// Start server after DB connection
+async function startServer() {
+  try {
+    await pool.query("SELECT 1"); // Test DB connection
+    console.log("✅ Database connection successful");
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, async () => {
+      console.log(`Server running on port ${PORT}`);
+      await setDemoUsersOnline();
+    });
+  } catch (err) {
+    console.error("❌ Failed to connect to the database:", err);
+    process.exit(1); // Stop server if DB is unreachable
+  }
+}
+
+startServer();
