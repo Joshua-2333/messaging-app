@@ -7,12 +7,14 @@ dotenv.config();
 const { Pool } = pg;
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER || "josh2333"}:${process.env.DB_PASSWORD || "yourpassword"}@${process.env.DB_HOST || "localhost"}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || "messaging_app"}`,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false, // SSL only for Render
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 pool.on("connect", () => {
-  console.log("✅ Connected to the database");
+  console.log("✅ Connected to Neon PostgreSQL");
 });
 
 export default pool;
